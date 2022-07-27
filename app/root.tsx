@@ -9,6 +9,7 @@ import {
 } from "@remix-run/react";
 import ThemeProvider from "./themes";
 import { NotificationsProvider } from "@mantine/notifications";
+import { StylesPlaceholder } from "@mantine/remix";
 
 export const meta: MetaFunction = () => ({
   charset: "utf-8",
@@ -18,10 +19,11 @@ export const meta: MetaFunction = () => ({
 
 const Document: React.FC = ({ children }) => {
   return (
-    <html lang='en'>
+    <html lang="en">
       <head>
         <Meta />
         <Links />
+        <StylesPlaceholder />
       </head>
       <body>
         {children}
@@ -37,7 +39,7 @@ const App = () => {
   return (
     <Document>
       <ThemeProvider>
-        <NotificationsProvider position='top-center' autoClose={5000}>
+        <NotificationsProvider position="top-center" autoClose={5000}>
           <Outlet />
         </NotificationsProvider>
       </ThemeProvider>

@@ -9,7 +9,7 @@ if (!constant.SESSION_SECRET) {
 
 export const storage = createCookieSessionStorage({
   cookie: {
-    name: "netflix-session",
+    name: "token",
     secure: constant.NODE_ENV === "production",
     secrets: [constant.SESSION_SECRET],
     sameSite: "lax",
@@ -65,6 +65,6 @@ export const getUser = async (request: Request) => {
   }
 };
 
-export const getUsersession = (request: Request) => {
-  return storage.getSession(request.headers.get("Cookie"));
+export const getUsersession = async (request: Request) => {
+  return await storage.getSession(request.headers.get("Cookie"));
 };

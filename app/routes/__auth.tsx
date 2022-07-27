@@ -8,11 +8,11 @@ import { getUser } from "~/utils/session.server";
 
 export const loader: LoaderFunction = async ({ request }) => {
   const auth = await getUser(request);
-  return auth ? redirect("/movie") : null;
+  return auth ? redirect("/dashboard") : null;
 };
 const Auth = () => {
   return (
-    <BackgroundImage src={bgImg} style={{ opacity: "80%" }}>
+    <BackgroundImage src={bgImg} style={{ opacity: "90%" }}>
       <Box
         sx={(theme) => ({
           position: "absolute",
@@ -22,7 +22,7 @@ const Auth = () => {
           height: "100vh",
           background:
             theme.colorScheme === "dark"
-              ? "rgba(0,0,0,0.8)"
+              ? "rgba(0,0,0,0.9)"
               : "rgba(255,255,255,0.05)",
         })}
       ></Box>
@@ -30,8 +30,8 @@ const Auth = () => {
         position="apart"
         style={{
           position: "absolute",
-          width: "100%",
           top: 15,
+          right: 0,
           padding: "0 1rem",
         }}
       >

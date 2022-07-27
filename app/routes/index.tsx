@@ -1,5 +1,8 @@
-import { Title } from "@mantine/core";
+import { requireUserId } from "~/utils/session.server";
+import { redirect } from "@remix-run/node";
+import type { LoaderFunction } from "@remix-run/node";
 
-export default function IndexPage() {
-  return <Title order={1}>Page Index</Title>;
-}
+export const loader: LoaderFunction = async ({ request }) => {
+  await requireUserId(request);
+  return redirect("/dashboard");
+};

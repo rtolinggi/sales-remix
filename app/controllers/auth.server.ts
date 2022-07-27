@@ -84,12 +84,12 @@ export const login = async (form: LoginForm) => {
     }
   }
 
-  return createUserSession(user.userId, "/movie");
+  return createUserSession(user.userId, "/dashboard");
 };
 
 export const logout = async (request: Request) => {
   const session = await getUsersession(request);
-  return redirect("/auth", {
+  return redirect("/login", {
     headers: {
       "Set-Cookie": await storage.destroySession(session),
     },
