@@ -1,4 +1,4 @@
-import { Button, Center, Container, Stack, Title } from "@mantine/core";
+import { Button, Stack, Title } from "@mantine/core";
 import { json } from "@remix-run/node";
 import type { ActionFunction } from "@remix-run/node";
 import { Form } from "@remix-run/react";
@@ -25,20 +25,16 @@ export const action: ActionFunction = async ({ request }) => {
 
 const DashboardPage = () => {
   return (
-    <Container>
+    <Stack>
+      <Title order={2}>Dashboradr</Title>
       <Stack>
-        <Center>
-          <Title order={4}>Nested Router</Title>;
-        </Center>
-        <Stack>
-          <Form method="post">
-            <Button type="submit" name="_action" value="logout">
-              Logout
-            </Button>
-          </Form>
-        </Stack>
+        <Form method="post">
+          <Button type="submit" name="_action" value="logout">
+            Logout
+          </Button>
+        </Form>
       </Stack>
-    </Container>
+    </Stack>
   );
 };
 

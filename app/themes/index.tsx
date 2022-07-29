@@ -17,7 +17,8 @@ const ThemeProvider: React.FC = ({ children }) => {
   return (
     <ColorSchemeProvider
       colorScheme={colorScheme}
-      toggleColorScheme={toggleColorScheme}>
+      toggleColorScheme={toggleColorScheme}
+    >
       <MantineProvider withNormalizeCSS withGlobalStyles theme={myTheme}>
         {children}
       </MantineProvider>

@@ -223,14 +223,6 @@ const Login = () => {
           value={formData.email}
           onChange={(e) => handleChangeInput(e, "email")}
           error={fieldErrors?.email}
-          styles={(theme) => ({
-            label: {
-              color:
-                theme.colorScheme === "dark"
-                  ? theme.colors.primaryColor
-                  : "red",
-            },
-          })}
           required
         />
         <PasswordInput
@@ -241,14 +233,6 @@ const Login = () => {
           value={formData.passwordHash}
           onChange={(e) => handleChangeInput(e, "passwordHash")}
           error={fieldErrors?.passwordHash}
-          styles={(theme) => ({
-            label: {
-              color:
-                theme.colorScheme === "dark"
-                  ? theme.colors.primaryColor
-                  : "red",
-            },
-          })}
           required
           mt="md"
         />
@@ -261,14 +245,6 @@ const Login = () => {
             value={formData.confirmPassword}
             onChange={(e) => handleChangeInput(e, "confirmPassword")}
             error={fieldErrors?.confirmPassword}
-            styles={(theme) => ({
-              label: {
-                color:
-                  theme.colorScheme === "dark"
-                    ? theme.colors.primaryColor
-                    : "red",
-              },
-            })}
             required
             mt="md"
           />
