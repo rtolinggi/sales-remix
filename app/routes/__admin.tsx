@@ -14,9 +14,8 @@ import IAvatar from "../assets/avatar.jpg";
 import { json, redirect } from "@remix-run/node";
 import type { LoaderFunction } from "@remix-run/node";
 import { getUser } from "~/utils/session.server";
-import { useLoaderData } from "@remix-run/react";
 import DarkMode from "~/components/DarkMode";
-import UserButton from "~/components/Navbar/NavbarFooter";
+import UserButton from "~/components/UserButton";
 import { Outlet } from "@remix-run/react";
 import { BrandJavascript } from "tabler-icons-react";
 import NavbarTitle from "~/components/Navbar/NavbarTitle";
@@ -26,10 +25,9 @@ export const loader: LoaderFunction = async ({ request }) => {
   return user ? json({ data: user }) : redirect("login");
 };
 export default function AppShellDemo() {
-  const { data } = useLoaderData();
-  console.log(data);
   const theme = useMantineTheme();
-  const [opened, setOpened] = useState(false);
+  const [opened, setOpened] = useState<boolean>(false);
+
   return (
     <AppShell
       styles={{
@@ -40,64 +38,64 @@ export default function AppShellDemo() {
               : theme.colors.gray[0],
         },
       }}
-      navbarOffsetBreakpoint="xl"
+      navbarOffsetBreakpoint='sm'
       navbar={
         <Navbar
-          p="md"
-          hiddenBreakpoint="sm"
-          hidden={!opened}
-          width={{ sm: 200, lg: 250 }}
-        >
+          p='md'
+          width={{ sm: 280 }}
+          hidden={opened}
+          hiddenBreakpoint='sm'>
           <Navbar.Section>
             <NavbarTitle
-              name="Rio Tolinggi"
-              email="rtolinggi91@gmail.com"
+              name='Rio Tolinggi'
+              email='rtolinggi91@gmail.com'
               image={IAvatar}
             />
           </Navbar.Section>
-          <Navbar.Section mt="md" grow>
+          <Navbar.Section mt='md' grow>
             <p>Content</p>
           </Navbar.Section>
           <Navbar.Section>
-            <Divider my="xs" />
+            <Divider my='xs' />
             <UserButton
-              name="rtolinggi"
-              email="rtolinggi@gmail.com"
+              name='rtolinggi'
+              email='rtolinggi@gmail.com'
               image={IAvatar}
             />
           </Navbar.Section>
         </Navbar>
       }
       header={
-        <Header height={60} p="md">
+        <Header height={70} p='sm'>
           <div
             style={{
               display: "flex",
               alignItems: "center",
+              width: "100%",
               height: "100%",
               justifyContent: "space-between",
-            }}
-          >
-            <MediaQuery largerThan="sm" styles={{ display: "none" }}>
+            }}>
+            <MediaQuery largerThan='sm' styles={{ display: "none" }}>
               <Burger
                 opened={opened}
                 onClick={() => setOpened((o) => !o)}
-                size="sm"
+                size='sm'
                 color={theme.colors.gray[6]}
-                mr="xl"
               />
             </MediaQuery>
-            <Group spacing="xs">
-              <BrandJavascript size={30} strokeWidth={2} color="red" />
+            <Group>
+              <BrandJavascript size={30} strokeWidth={2} color='red' />
               <Text weight={700}>Demo App</Text>
             </Group>
-            <Group>
-              <DarkMode variant="light" size={18} />
-            </Group>
+            <div style={{ display: "flex", alignItems: "center" }}>
+              <MediaQuery smallerThan='sm' styles={{ display: "none" }}>
+                <UserButton image={IAvatar} email='rtolinggi91@gmail.com' />
+              </MediaQuery>
+              <DarkMode variant='light' size={18} />
+            </div>
           </div>
         </Header>
-      }
-    >
+      }>
       <Outlet />
     </AppShell>
   );

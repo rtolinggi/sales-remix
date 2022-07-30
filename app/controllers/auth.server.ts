@@ -122,5 +122,5 @@ export const verifiedEmail = async (token: string) => {
     });
   }
 
-  return createUserSession(verified.userId, "/movie");
+  return createUserSession(verified.userId, "/dashboard");
 };

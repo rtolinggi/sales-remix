@@ -26,10 +26,10 @@ export const action: ActionFunction = async ({ request }) => {
 const DashboardPage = () => {
   return (
     <Stack>
-      <Title order={2}>Dashboradr</Title>
+      <Title order={2}>Dashborad</Title>
       <Stack>
-        <Form method="post">
-          <Button type="submit" name="_action" value="logout">
+        <Form method='post'>
+          <Button type='submit' name='_action' value='logout'>
             Logout
           </Button>
         </Form>
