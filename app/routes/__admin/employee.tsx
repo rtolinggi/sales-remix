@@ -10,11 +10,16 @@ import {
   Title,
 } from "@mantine/core";
 import { Form } from "@remix-run/react";
+import dayjs from "dayjs";
 import { useState } from "react";
 import type { LoaderFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
 import { getEmail } from "../../controllers/employee.server";
+import { DatePicker } from "@mantine/dates";
+import "dayjs/locale/id";
+
+dayjs().format();
 
 export const loader: LoaderFunction = async () => {
   const dataEmail = await getEmail();
@@ -28,6 +33,10 @@ export const loader: LoaderFunction = async () => {
 };
 
 export default function Employee() {
+  dayjs.locale("id");
+  dayjs().locale("id").format();
+  console.log(dayjs.locale());
+
   const [opened, setOpened] = useState<boolean>(false);
   const data = useLoaderData();
   return (
@@ -74,6 +83,12 @@ export default function Employee() {
                 <Radio value="not active" label="Not Active" />
               </Radio.Group>
             </Group>
+            <DatePicker
+              locale="id"
+              placeholder="Pick date"
+              label="Event date"
+              required
+            />
           </Stack>
         </Form>
       </Drawer>
