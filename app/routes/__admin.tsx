@@ -9,6 +9,9 @@ import {
   useMantineTheme,
   Group,
   Divider,
+  Menu,
+  LoadingOverlay,
+  Avatar,
 } from "@mantine/core";
 import IAvatar from "../assets/avatar.jpg";
 import { json, redirect } from "@remix-run/node";
@@ -16,87 +19,128 @@ import type { LoaderFunction } from "@remix-run/node";
 import { getUser } from "~/utils/session.server";
 import DarkMode from "~/components/DarkMode";
 import UserButton from "~/components/UserButton";
-import { Outlet } from "@remix-run/react";
 import { BrandJavascript } from "tabler-icons-react";
 import NavbarTitle from "~/components/Navbar/NavbarTitle";
+import { IconLogout, IconMessageCircle, IconSettings } from "@tabler/icons";
+import { Outlet, useSubmit, useTransition } from "@remix-run/react";
+import NavbarContent from "~/components/Navbar/NavbarContent";
 
 export const loader: LoaderFunction = async ({ request }) => {
   const user = await getUser(request);
   return user ? json({ data: user }) : redirect("login");
 };
-export default function AppShellDemo() {
-  const theme = useMantineTheme();
-  const [opened, setOpened] = useState<boolean>(false);
 
+export default function AppShellDemo() {
+  const logout = useSubmit();
+  const transition = useTransition();
+  const theme = useMantineTheme();
+  const [opened, setOpened] = useState<boolean>(true);
   return (
-    <AppShell
-      styles={{
-        main: {
-          background:
-            theme.colorScheme === "dark"
-              ? theme.colors.dark[7]
-              : theme.colors.gray[0],
-        },
-      }}
-      navbarOffsetBreakpoint='sm'
-      navbar={
-        <Navbar
-          p='md'
-          width={{ sm: 280 }}
-          hidden={opened}
-          hiddenBreakpoint='sm'>
-          <Navbar.Section>
-            <NavbarTitle
-              name='Rio Tolinggi'
-              email='rtolinggi91@gmail.com'
-              image={IAvatar}
-            />
-          </Navbar.Section>
-          <Navbar.Section mt='md' grow>
-            <p>Content</p>
-          </Navbar.Section>
-          <Navbar.Section>
-            <Divider my='xs' />
-            <UserButton
-              name='rtolinggi'
-              email='rtolinggi@gmail.com'
-              image={IAvatar}
-            />
-          </Navbar.Section>
-        </Navbar>
-      }
-      header={
-        <Header height={70} p='sm'>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              width: "100%",
-              height: "100%",
-              justifyContent: "space-between",
-            }}>
-            <MediaQuery largerThan='sm' styles={{ display: "none" }}>
-              <Burger
-                opened={opened}
-                onClick={() => setOpened((o) => !o)}
-                size='sm'
-                color={theme.colors.gray[6]}
+    <>
+      <LoadingOverlay visible={transition.submission ? true : false} />
+      <AppShell
+        styles={{
+          main: {
+            background:
+              theme.colorScheme === "dark"
+                ? theme.colors.dark[6]
+                : theme.colors.gray[0],
+          },
+        }}
+        navbarOffsetBreakpoint="sm"
+        navbar={
+          <Navbar
+            p="md"
+            width={{ sm: 250 }}
+            hidden={opened}
+            hiddenBreakpoint="sm"
+          >
+            <Navbar.Section>
+              <NavbarTitle name="rtolinggi" email="rtolinggi91@gmail.com" />
+              <Divider
+                my="md"
+                labelPosition="center"
+                label={
+                  <>
+                    <Avatar src={IAvatar} size={50} radius="xl" />
+                  </>
+                }
               />
-            </MediaQuery>
-            <Group>
-              <BrandJavascript size={30} strokeWidth={2} color='red' />
-              <Text weight={700}>Demo App</Text>
-            </Group>
-            <div style={{ display: "flex", alignItems: "center" }}>
-              <MediaQuery smallerThan='sm' styles={{ display: "none" }}>
-                <UserButton image={IAvatar} email='rtolinggi91@gmail.com' />
+            </Navbar.Section>
+            <Navbar.Section grow>
+              <NavbarContent />
+            </Navbar.Section>
+          </Navbar>
+        }
+        header={
+          <Header height={70} p="sm">
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                width: "100%",
+                height: "100%",
+                justifyContent: "space-between",
+              }}
+            >
+              <MediaQuery largerThan="sm" styles={{ display: "none" }}>
+                <Burger
+                  opened={!opened}
+                  onClick={() => setOpened((o) => !o)}
+                  size="sm"
+                  color={theme.colors.gray[6]}
+                />
               </MediaQuery>
-              <DarkMode variant='light' size={18} />
+              <Group>
+                <BrandJavascript size={30} strokeWidth={2} color="red" />
+                <Text weight={700}>Demo App</Text>
+              </Group>
+              <div style={{ display: "flex", alignItems: "center" }}>
+                <MediaQuery smallerThan="sm" styles={{ display: "none" }}>
+                  <Group position="center">
+                    <Menu withArrow width={200}>
+                      <Menu.Target>
+                        <UserButton
+                          image={IAvatar}
+                          email="rtolinggi91@gmail.com"
+                        />
+                      </Menu.Target>
+                      <Menu.Dropdown>
+                        <Menu.Label>Application</Menu.Label>
+                        <Menu.Item icon={<IconSettings size={14} />}>
+                          Settings
+                        </Menu.Item>
+                        <Menu.Item icon={<IconMessageCircle size={14} />}>
+                          Messages
+                        </Menu.Item>
+                        <Menu.Divider />
+                        <Menu.Item
+                          color="red"
+                          onClick={() =>
+                            logout(
+                              { _action: "logout" },
+                              {
+                                method: "post",
+                                action: "logout",
+                              }
+                            )
+                          }
+                          icon={<IconLogout size={14} />}
+                        >
+                          Logout
+                        </Menu.Item>
+                      </Menu.Dropdown>
+                    </Menu>
+                  </Group>
+                </MediaQuery>
+                <DarkMode variant="light" size={18} />
+              </div>
             </div>
-          </div>
-        </Header>
-      }>
-      <Outlet />
-    </AppShell>
+          </Header>
+        }
+      >
+        <Outlet />
+      </AppShell>
+    </>
   );
 }

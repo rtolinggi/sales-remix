@@ -18,19 +18,21 @@ const UserButton = forwardRef<HTMLButtonElement, UserButtonProps>(
         display: "block",
         width: "100%",
         padding: theme.spacing.md,
+        outline: "none",
         color:
           theme.colorScheme === "dark" ? theme.colors.dark[0] : theme.black,
       })}
-      {...others}>
-      <Group spacing='xs'>
-        <Avatar src={image} radius='xl' size={30} />
+      {...others}
+    >
+      <Group spacing="xs">
+        <Avatar src={image} radius="xl" size={30} />
 
         <div style={{ flex: 1 }}>
-          <Text size='sm' weight={500}>
+          <Text size="sm" weight={500}>
             {name}
           </Text>
 
-          <Text color='dimmed' size='xs'>
+          <Text color="dimmed" size="xs">
             {email}
           </Text>
         </div>

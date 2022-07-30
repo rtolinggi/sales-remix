@@ -13,6 +13,7 @@ const ThemeProvider: React.FC = ({ children }) => {
     primaryColor: "red",
     primaryShade: { dark: 8, light: 9 },
     loader: "bars",
+    focusRing: "never",
   };
   return (
     <ColorSchemeProvider
