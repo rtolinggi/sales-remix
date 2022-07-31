@@ -11,15 +11,14 @@ const ThemeProvider: React.FC = ({ children }) => {
   const myTheme: MantineThemeOverride = {
     colorScheme: colorScheme,
     primaryColor: "red",
-    primaryShade: { dark: 8, light: 9 },
+    primaryShade: { dark: 8, light: 7 },
     loader: "bars",
     focusRing: "never",
   };
   return (
     <ColorSchemeProvider
       colorScheme={colorScheme}
-      toggleColorScheme={toggleColorScheme}
-    >
+      toggleColorScheme={toggleColorScheme}>
       <MantineProvider withNormalizeCSS withGlobalStyles theme={myTheme}>
         {children}
       </MantineProvider>
