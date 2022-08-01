@@ -11,18 +11,19 @@ import {
   TextInput,
   Title,
 } from "@mantine/core";
-import { Form, useActionData } from "@remix-run/react";
-import { useState } from "react";
+import { Form, useActionData, useTransition } from "@remix-run/react";
+import React, { useEffect, useState } from "react";
 import type { LoaderFunction, ActionFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
-import { getEmail } from "../../controllers/employee.server";
+import { createEmployee, getEmail } from "../../controllers/employee.server";
 import { DatePicker } from "@mantine/dates";
 import type { users } from "@prisma/client";
 import { IconCalendar } from "@tabler/icons";
 import { requireUserId } from "~/utils/session.server";
 import { validateAction } from "~/utils/validate.server";
 import * as Z from "zod";
+import { showNotification } from "@mantine/notifications";
 
 type UsersProps = {
   data: Array<users>;
@@ -59,13 +60,13 @@ const schema = Z.object({
   endDate: Z.string(),
   image: Z.string().default("default.jpg"),
   jobTitle: Z.string(),
-  action: Z.string(),
+  action: Z.string().optional(),
 }).refine((data) => data.action === "createEmploye", {
   message: "Action Not Allowed",
   path: ["action"],
 });
 
-type ActionInput = Z.infer<typeof schema>;
+export type ActionInput = Z.infer<typeof schema>;
 
 export const action: ActionFunction = async ({ request }) => {
   const { formData, errors } = await validateAction<ActionInput>({
@@ -74,29 +75,34 @@ export const action: ActionFunction = async ({ request }) => {
   });
 
   if (errors) {
-    return json({ errors }, { status: 400 });
+    return json({ success: false, errors }, { status: 400 });
   }
 
-  return json({ formData }, { status: 200 });
-  // const {
-  //   userId,
-  //   firstName,
-  //   lastName,
-  //   gender,
-  //   address,
-  //   phone,
-  //   birthDay,
-  //   joinDate,
-  //   endDate,
-  //   image,
-  //   jobTitle,
-  // } = formData;
+  const newFormData = { ...formData };
+  delete newFormData.action;
+
+  const result = await createEmployee(newFormData);
+  if (!result) {
+    return json({ success: false, errors }, { status: 400 });
+  }
+
+  return json({ success: true }, { status: 200 });
 };
 
 export default function Employee() {
   const { data } = useLoaderData<UsersProps>();
+  const transition = useTransition();
   const [opened, setOpened] = useState<boolean>(false);
-  const actionData = useActionData();
+  const actionData = useActionData<ActionInput>();
+  useEffect(() => {
+    if (transition.state === "idle") {
+      showNotification({
+        title: "Created Employe",
+        message: "Employe Successfully created",
+      });
+      setOpened(false);
+    }
+  }, [transition]);
   console.log(actionData);
   return (
     <>
@@ -111,11 +117,16 @@ export default function Employee() {
         {/* Drawer content */}
         <Form method="post">
           <Stack spacing="sm" align="stretch">
-            <input type="hidden" name="userId" value="userId Testing" />
             <Select
               variant="filled"
-              name="email"
-              data={data.map((item) => item.email)}
+              name="userId"
+              data={data.map((data) => {
+                const result = {
+                  value: data.userId,
+                  label: data.email,
+                };
+                return result;
+              })}
               searchable
               clearable
               placeholder="Select Email"
@@ -157,8 +168,7 @@ export default function Employee() {
                 icon={<IconCalendar size={16} />}
                 label="Birth Day"
                 allowFreeInput
-                value={new Date()}
-                dateParser={(v) => new Date(Date.parse(v))}
+                inputFormat="YYYY-MM-DD"
               />
               <NumberInput
                 variant="filled"
