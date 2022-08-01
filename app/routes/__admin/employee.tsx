@@ -21,8 +21,8 @@ import { DatePicker } from "@mantine/dates";
 import type { users } from "@prisma/client";
 import { IconCalendar } from "@tabler/icons";
 import { requireUserId } from "~/utils/session.server";
-import * as Z from "zod";
 import { validateAction } from "~/utils/validate.server";
+import * as Z from "zod";
 
 type UsersProps = {
   data: Array<users>;
@@ -42,6 +42,9 @@ export const loader: LoaderFunction = async ({ request }) => {
 };
 
 const schema = Z.object({
+  userId: Z.string({
+    required_error: "UserId is required",
+  }),
   firstName: Z.string({
     required_error: "First Name is required",
   }),
@@ -49,50 +52,52 @@ const schema = Z.object({
     required_error: "Last Name is required",
   }),
   gender: Z.enum(["F", "M"]),
-  birthDay: Z.string({
-    invalid_type_error: "Invalid Date",
-  }),
   address: Z.string(),
   phone: Z.string(),
-  joinDate: Z.string({
-    invalid_type_error: "Invalid Date",
-  }),
-  endDate: Z.string({
-    invalid_type_error: "Invalid date",
-  }),
-  jobTitle: Z.string(),
+  birthDay: Z.string(),
+  joinDate: Z.string(),
+  endDate: Z.string(),
   image: Z.string().default("default.jpg"),
+  jobTitle: Z.string(),
+  action: Z.string(),
+}).refine((data) => data.action === "createEmploye", {
+  message: "Action Not Allowed",
+  path: ["action"],
 });
 
+type ActionInput = Z.infer<typeof schema>;
+
 export const action: ActionFunction = async ({ request }) => {
-  const { formData, error } = await validateAction({
+  const { formData, errors } = await validateAction<ActionInput>({
     request,
     schema,
   });
-  console.log(formData);
-  if (error) {
-    return json({ error }, { status: 400 });
+
+  if (errors) {
+    return json({ errors }, { status: 400 });
   }
 
-  const {
-    firstName,
-    lastName,
-    gender,
-    address,
-    phone,
-    joinDate,
-    endDate,
-    jobTitle,
-    image,
-  } = FormData;
+  return json({ formData }, { status: 200 });
+  // const {
+  //   userId,
+  //   firstName,
+  //   lastName,
+  //   gender,
+  //   address,
+  //   phone,
+  //   birthDay,
+  //   joinDate,
+  //   endDate,
+  //   image,
+  //   jobTitle,
+  // } = formData;
 };
 
 export default function Employee() {
-  const [opened, setOpened] = useState<boolean>(false);
   const { data } = useLoaderData<UsersProps>();
-  const handleSubmit = () => {
-    console.log("SUBMIT");
-  };
+  const [opened, setOpened] = useState<boolean>(false);
+  const actionData = useActionData();
+  console.log(actionData);
   return (
     <>
       <Drawer
@@ -106,6 +111,7 @@ export default function Employee() {
         {/* Drawer content */}
         <Form method="post">
           <Stack spacing="sm" align="stretch">
+            <input type="hidden" name="userId" value="userId Testing" />
             <Select
               variant="filled"
               name="email"
@@ -202,7 +208,7 @@ export default function Employee() {
               required
             />
           </Stack>
-          <Button type="submit" mt={20}>
+          <Button type="submit" mt={20} name="action" value="createEmploye">
             Add Data Employe
           </Button>
         </Form>
