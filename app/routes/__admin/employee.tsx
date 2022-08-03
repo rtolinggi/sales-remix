@@ -12,34 +12,62 @@ import {
   Title,
 } from "@mantine/core";
 import { Form, useActionData, useTransition } from "@remix-run/react";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import type { LoaderFunction, ActionFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
 import { createEmployee, getEmail } from "../../controllers/employee.server";
 import { DatePicker } from "@mantine/dates";
-import type { users } from "@prisma/client";
+import type { employees, users } from "@prisma/client";
 import { IconCalendar } from "@tabler/icons";
 import { requireUserId } from "~/utils/session.server";
 import { validateAction } from "~/utils/validate.server";
 import * as Z from "zod";
 import { showNotification } from "@mantine/notifications";
+import { getEmployee } from "../../controllers/employee.server";
+import { createColumnHelper } from "@tanstack/react-table";
+import DataTable from "../../components/DataTable";
 
-type UsersProps = {
-  data: Array<users>;
+type LoaderProps = {
+  users: Array<users>;
+  employee: Array<employees & { users: users | undefined }>;
+};
+
+type ActionProps = {
+  success: boolean;
+  errors?: [] | undefined | null;
+};
+
+type EmployeeTable = {
+  email: string | undefined;
+  firstName: string;
+  lastName: string;
+  image: string;
+  jobTitle: string;
+  phone: string;
+  joinDate: string | null;
+  isActive: boolean | undefined;
 };
 
 export const loader: LoaderFunction = async ({ request }) => {
   const user = await requireUserId(request);
+  if (!user)
+    return json({ success: false, errors: "Unauthorize" }, { status: 400 });
+
   const dataEmail = await getEmail();
-  return json(
-    {
-      success: true,
-      data: dataEmail,
-      user: user,
-    },
-    { status: 200 }
-  );
+  const dataEmployee = await getEmployee();
+
+  if (dataEmail && dataEmployee) {
+    return json(
+      {
+        success: true,
+        users: dataEmail,
+        employee: dataEmployee,
+      },
+      { status: 200 }
+    );
+  }
+  return null;
 };
 
 const schema = Z.object({
@@ -90,20 +118,60 @@ export const action: ActionFunction = async ({ request }) => {
 };
 
 export default function Employee() {
-  const { data } = useLoaderData<UsersProps>();
+  const { users, employee } = useLoaderData<LoaderProps>();
+  const actionData = useActionData<ActionProps>();
   const transition = useTransition();
   const [opened, setOpened] = useState<boolean>(false);
-  const actionData = useActionData<ActionInput>();
+
+  const data: Array<EmployeeTable> = employee.map((item) => {
+    const dataTable = {
+      email: item.users?.email,
+      firstName: item.firstName,
+      lastName: item.lastName,
+      image: item.image,
+      jobTitle: item.jobTitle,
+      phone: item.phone,
+      joinDate: item.joinDate,
+      isActive: item.users?.isActive,
+    };
+    return dataTable;
+  });
+
+  const columnHelper = createColumnHelper<EmployeeTable>();
+  const columns = [
+    columnHelper.accessor("email", {
+      header: "Email",
+    }),
+    columnHelper.accessor((row) => `${row.firstName} ${row.lastName}`, {
+      id: "firstName",
+      header: "Full Name",
+    }),
+    columnHelper.accessor("image", {
+      header: "Image",
+    }),
+    columnHelper.accessor("jobTitle", {
+      header: "Job Title",
+    }),
+    columnHelper.accessor("joinDate", {
+      header: "Join Date",
+    }),
+    columnHelper.accessor("phone", {
+      header: "Phone",
+    }),
+    columnHelper.accessor("isActive", {
+      header: "Active",
+    }),
+  ];
+
   useEffect(() => {
-    if (transition.state === "idle") {
+    if (transition.state === "submitting" && actionData?.success) {
       showNotification({
         title: "Created Employe",
         message: "Employe Successfully created",
       });
       setOpened(false);
     }
-  }, [transition]);
-  console.log(actionData);
+  }, [transition, actionData]);
   return (
     <>
       <Drawer
@@ -120,7 +188,7 @@ export default function Employee() {
             <Select
               variant="filled"
               name="userId"
-              data={data.map((data) => {
+              data={users.map((data) => {
                 const result = {
                   value: data.userId,
                   label: data.email,
@@ -236,6 +304,18 @@ export default function Employee() {
         <Title order={3}>Employee</Title>
       </Paper>
       <Button onClick={() => setOpened(true)}>Add Employee</Button>
+      <Paper
+        shadow="sm"
+        radius="md"
+        style={{
+          width: "100%",
+          padding: "20px 10px",
+          overflow: "auto",
+          marginTop: "1rem",
+        }}
+      >
+        <DataTable data={data} columns={columns} />
+      </Paper>
     </>
   );
 }

@@ -2,7 +2,7 @@ import { prisma } from "../utils/prisma.server";
 import type { employees_gender } from "@prisma/client";
 import { json } from "@remix-run/node";
 
-type FormEmployee = {
+export type FormEmployee = {
   userId: string;
   firstName: string;
   lastName: string;
@@ -14,6 +14,19 @@ type FormEmployee = {
   endDate: string;
   jobTitle: string;
   actions?: string;
+};
+
+export const getEmployee = async () => {
+  try {
+    const employees = prisma.employees.findMany({
+      include: {
+        users: true,
+      },
+    });
+    return employees;
+  } catch (error) {
+    console.log(error);
+  }
 };
 export const getEmail = async () => {
   try {
