@@ -3,15 +3,17 @@ import {
   Drawer,
   Group,
   NumberInput,
+  Pagination,
   Paper,
   Radio,
   Select,
   Stack,
   Textarea,
   TextInput,
+  ThemeIcon,
   Title,
 } from "@mantine/core";
-import { Form, useActionData, useTransition } from "@remix-run/react";
+import { Form, useTransition } from "@remix-run/react";
 import { useEffect, useState } from "react";
 import type { LoaderFunction, ActionFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
@@ -19,7 +21,7 @@ import { useLoaderData } from "@remix-run/react";
 import { createEmployee, getEmail } from "../../controllers/employee.server";
 import { DatePicker } from "@mantine/dates";
 import type { employees, users } from "@prisma/client";
-import { IconCalendar } from "@tabler/icons";
+import { IconCalendar, IconEdit, IconTrash } from "@tabler/icons";
 import { requireUserId } from "~/utils/session.server";
 import { validateAction } from "~/utils/validate.server";
 import * as Z from "zod";
@@ -31,11 +33,6 @@ import DataTable from "../../components/DataTable";
 type LoaderProps = {
   users: Array<users>;
   employee: Array<employees & { users: users | undefined }>;
-};
-
-type ActionProps = {
-  success: boolean;
-  errors?: [] | undefined | null;
 };
 
 type EmployeeTable = {
@@ -88,6 +85,7 @@ const schema = Z.object({
   endDate: Z.string(),
   image: Z.string().default("default.jpg"),
   jobTitle: Z.string(),
+  isActive: Z.string(),
   action: Z.string().optional(),
 }).refine((data) => data.action === "createEmploye", {
   message: "Action Not Allowed",
@@ -119,7 +117,6 @@ export const action: ActionFunction = async ({ request }) => {
 
 export default function Employee() {
   const { users, employee } = useLoaderData<LoaderProps>();
-  const actionData = useActionData<ActionProps>();
   const transition = useTransition();
   const [opened, setOpened] = useState<boolean>(false);
 
@@ -139,6 +136,11 @@ export default function Employee() {
 
   const columnHelper = createColumnHelper<EmployeeTable>();
   const columns = [
+    columnHelper.display({
+      id: "no",
+      header: "No.",
+      cell: (props) => parseInt(props.row.id) + 1,
+    }),
     columnHelper.accessor("email", {
       header: "Email",
     }),
@@ -161,33 +163,50 @@ export default function Employee() {
     columnHelper.accessor("isActive", {
       header: "Active",
     }),
+    columnHelper.display({
+      id: "action",
+      header: "Actions",
+      cell: (props) => (
+        <>
+          <ThemeIcon
+            color='red'
+            variant='light'
+            style={{ cursor: "pointer", marginRight: "10px" }}
+            onClick={() => data[parseInt(props.row.id)].email}>
+            <IconTrash size={20} stroke={1.5} />
+          </ThemeIcon>
+          <ThemeIcon color='lime' variant='light' style={{ cursor: "pointer" }}>
+            <IconEdit size={20} stroke={1.5} />
+          </ThemeIcon>
+        </>
+      ),
+    }),
   ];
 
   useEffect(() => {
-    if (transition.state === "submitting" && actionData?.success) {
+    if (transition.state === "submitting") {
       showNotification({
         title: "Created Employe",
         message: "Employe Successfully created",
       });
       setOpened(false);
     }
-  }, [transition, actionData]);
+  }, [transition]);
   return (
     <>
       <Drawer
         opened={opened}
         onClose={() => setOpened(false)}
-        title="Employee"
-        padding="xl"
-        size="xl"
-        position="right"
-      >
+        title='Employee'
+        padding='xl'
+        size='xl'
+        position='right'>
         {/* Drawer content */}
-        <Form method="post">
-          <Stack spacing="sm" align="stretch">
+        <Form method='post'>
+          <Stack spacing='sm' align='stretch'>
             <Select
-              variant="filled"
-              name="userId"
+              variant='filled'
+              name='userId'
               data={users.map((data) => {
                 const result = {
                   value: data.userId,
@@ -197,124 +216,135 @@ export default function Employee() {
               })}
               searchable
               clearable
-              placeholder="Select Email"
-              label="Email"
+              placeholder='Select Email'
+              label='Email'
               required
             />
             <Group grow>
               <TextInput
-                variant="filled"
-                name="firstName"
-                placeholder="Your First Name"
-                label="Full Name"
+                variant='filled'
+                name='firstName'
+                placeholder='Your First Name'
+                label='Full Name'
                 required
               />
               <TextInput
-                variant="filled"
-                name="lastName"
-                placeholder="Your Last Name"
-                label="Last Name"
+                variant='filled'
+                name='lastName'
+                placeholder='Your Last Name'
+                label='Last Name'
                 required
               />
             </Group>
-            <Group position="apart" grow>
-              <Radio.Group label="Gender" spacing="xl" required>
-                <Radio value="F" name="gender" label="Female" />
-                <Radio value="M" name="gender" label="Male" />
+            <Group position='apart' grow>
+              <Radio.Group label='Gender' spacing='xl' required>
+                <Radio value='F' name='gender' label='Female' />
+                <Radio value='M' name='gender' label='Male' />
               </Radio.Group>
-              <Radio.Group label="Status JOB" spacing="xl" required>
-                <Radio value="active" name="status" label="Active" />
-                <Radio value="not active" name="status" label="Not Active" />
+              <Radio.Group label='Status JOB' spacing='xl' required>
+                <Radio value='true' name='isActive' label='Active' />
+                <Radio value='false' name='isActive' label='Not Active' />
               </Radio.Group>
             </Group>
-            <Group position="apart" grow>
+            <Group position='apart' grow>
               <DatePicker
-                variant="filled"
-                name="birthDay"
-                locale="id"
-                placeholder="Pick date"
+                variant='filled'
+                name='birthDay'
+                locale='id'
+                placeholder='Pick date'
                 icon={<IconCalendar size={16} />}
-                label="Birth Day"
+                label='Birth Day'
                 allowFreeInput
-                inputFormat="YYYY-MM-DD"
+                inputFormat='YYYY-MM-DD'
               />
               <NumberInput
-                variant="filled"
-                name="phone"
+                variant='filled'
+                name='phone'
                 hideControls
-                label="No Handphone"
+                label='No Handphone'
                 required
               />
             </Group>
-            <Group position="apart" grow>
+            <Group position='apart' grow>
               <DatePicker
-                variant="filled"
-                name="joinDate"
-                locale="id"
-                placeholder="Pick date"
+                variant='filled'
+                name='joinDate'
+                locale='id'
+                placeholder='Pick date'
                 icon={<IconCalendar size={16} />}
-                label="Join Date"
+                label='Join Date'
                 allowFreeInput
-                inputFormat="YYYY-MM-DD"
+                inputFormat='YYYY-MM-DD'
               />
               <DatePicker
-                variant="filled"
-                name="endDate"
-                locale="id"
-                placeholder="Pick date"
+                variant='filled'
+                name='endDate'
+                locale='id'
+                placeholder='Pick date'
                 icon={<IconCalendar size={16} />}
-                label="End Date"
-                inputFormat="YYYY-MM-DD"
+                label='End Date'
+                inputFormat='YYYY-MM-DD'
                 allowFreeInput
               />
             </Group>
             <Select
-              variant="filled"
-              name="jobTitle"
+              variant='filled'
+              name='jobTitle'
               data={["Sales", "SPG", "Supervisior"]}
               searchable
               clearable
-              placeholder="Select Title"
-              label="Job Title"
+              placeholder='Select Title'
+              label='Job Title'
               required
             />
             <Textarea
-              variant="filled"
-              name="address"
-              placeholder="Address"
-              label="Address"
+              variant='filled'
+              name='address'
+              placeholder='Address'
+              label='Address'
               required
             />
           </Stack>
-          <Button type="submit" mt={20} name="action" value="createEmploye">
+          <Button type='submit' mt={20} name='action' value='createEmploye'>
             Add Data Employe
           </Button>
         </Form>
       </Drawer>
       <Paper
-        radius="md"
-        p="sm"
+        radius='md'
+        p='sm'
         withBorder
         style={{
           borderWidth: "0px 0px 0px 5px",
           borderLeftColor: "tomato",
           marginBottom: "1rem",
-        }}
-      >
+        }}>
         <Title order={3}>Employee</Title>
       </Paper>
       <Button onClick={() => setOpened(true)}>Add Employee</Button>
       <Paper
-        shadow="sm"
-        radius="md"
+        shadow='sm'
+        radius='md'
         style={{
           width: "100%",
           padding: "20px 10px",
           overflow: "auto",
           marginTop: "1rem",
-        }}
-      >
+        }}>
         <DataTable data={data} columns={columns} />
+        <Pagination
+          total={3}
+          withEdges
+          position='right'
+          styles={(theme) => ({
+            item: {
+              "&[data-active]": {
+                backgroundImage: theme.colorScheme,
+              },
+              marginTop: "1rem",
+            },
+          })}
+        />
       </Paper>
     </>
   );

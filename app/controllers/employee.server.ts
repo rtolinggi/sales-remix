@@ -13,6 +13,7 @@ export type FormEmployee = {
   joinDate: string;
   endDate: string;
   jobTitle: string;
+  isActive: string;
   actions?: string;
 };
 
@@ -47,7 +48,7 @@ export const getEmail = async () => {
 
 export const createEmployee = async (data: FormEmployee) => {
   try {
-    const result = await prisma.employees.create({
+    const insertEmployee = await prisma.employees.create({
       data: {
         userId: data.userId,
         firstName: data.firstName,
@@ -61,9 +62,49 @@ export const createEmployee = async (data: FormEmployee) => {
         gender: data.gender,
       },
     });
-    return result;
+    const updateUserActive = await prisma.users.update({
+      where: {
+        userId: data.userId,
+      },
+      data: {
+        isActive: Boolean(data.isActive),
+      },
+    });
+
+    if (insertEmployee && updateUserActive) {
+      return true;
+    }
+    return false;
   } catch (error) {
     console.log(error);
     return json({ error: "Internal server error", status: 500 });
+  }
+};
+
+export const deleteEmployee = async (data: string) => {
+  try {
+    const employeeId = await prisma.users.findFirst({
+      where: {
+        email: data,
+      },
+      select: {
+        employees: {
+          select: {
+            employeeId: true,
+          },
+        },
+      },
+    });
+
+    //   if (employeeId) {
+    //  const deleteEmployeWithUser = await prisma.employees.delete({
+    //   where: {
+    //     employeeId: employeeId.
+    //   }
+    // })
+    return employeeId;
+  } catch (error) {
+    console.log(error);
+    return false;
   }
 };
