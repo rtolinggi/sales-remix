@@ -1,9 +1,9 @@
 import {
   Button,
+  CheckIcon,
   Drawer,
   Group,
   NumberInput,
-  Pagination,
   Paper,
   Radio,
   Select,
@@ -12,6 +12,8 @@ import {
   TextInput,
   ThemeIcon,
   Title,
+  ColorSwatch,
+  Avatar,
 } from "@mantine/core";
 import { Form, useTransition } from "@remix-run/react";
 import { useEffect, useState } from "react";
@@ -21,7 +23,7 @@ import { useLoaderData } from "@remix-run/react";
 import { createEmployee, getEmail } from "../../controllers/employee.server";
 import { DatePicker } from "@mantine/dates";
 import type { employees, users } from "@prisma/client";
-import { IconCalendar, IconEdit, IconTrash } from "@tabler/icons";
+import { IconCalendar, IconEdit, IconTrash, IconX } from "@tabler/icons";
 import { requireUserId } from "~/utils/session.server";
 import { validateAction } from "~/utils/validate.server";
 import * as Z from "zod";
@@ -29,21 +31,12 @@ import { showNotification } from "@mantine/notifications";
 import { getEmployee } from "../../controllers/employee.server";
 import { createColumnHelper } from "@tanstack/react-table";
 import DataTable from "../../components/DataTable";
+import type { EmployeeTable } from "../../utils/types.server";
+import dayjs from "dayjs";
 
 type LoaderProps = {
   users: Array<users>;
   employee: Array<employees & { users: users | undefined }>;
-};
-
-type EmployeeTable = {
-  email: string | undefined;
-  firstName: string;
-  lastName: string;
-  image: string;
-  jobTitle: string;
-  phone: string;
-  joinDate: string | null;
-  isActive: boolean | undefined;
 };
 
 export const loader: LoaderFunction = async ({ request }) => {
@@ -150,18 +143,42 @@ export default function Employee() {
     }),
     columnHelper.accessor("image", {
       header: "Image",
+      cell: (props) => {
+        return (
+          <>
+            <Avatar src="https://i.pravatar.cc/150" alt="it's me" radius="xl" />
+          </>
+        );
+      },
+    }),
+    columnHelper.accessor("isActive", {
+      header: "Active",
+      cell: (props) => {
+        const active = props.getValue();
+        return (
+          <Group position="center" spacing="xs">
+            <ColorSwatch color={active ? "green" : "red"}>
+              {active ? (
+                <CheckIcon width={10} color="white" />
+              ) : (
+                <IconX width={14} color="white" />
+              )}
+            </ColorSwatch>
+          </Group>
+        );
+      },
     }),
     columnHelper.accessor("jobTitle", {
       header: "Job Title",
     }),
     columnHelper.accessor("joinDate", {
       header: "Join Date",
+      cell: (props) => {
+        return <>{dayjs(props.getValue()).format("YYYY-MM-DD")}</>;
+      },
     }),
     columnHelper.accessor("phone", {
       header: "Phone",
-    }),
-    columnHelper.accessor("isActive", {
-      header: "Active",
     }),
     columnHelper.display({
       id: "action",
@@ -169,13 +186,14 @@ export default function Employee() {
       cell: (props) => (
         <>
           <ThemeIcon
-            color='red'
-            variant='light'
+            color="red"
+            variant="light"
             style={{ cursor: "pointer", marginRight: "10px" }}
-            onClick={() => data[parseInt(props.row.id)].email}>
+            onClick={() => data[parseInt(props.row.id)].email}
+          >
             <IconTrash size={20} stroke={1.5} />
           </ThemeIcon>
-          <ThemeIcon color='lime' variant='light' style={{ cursor: "pointer" }}>
+          <ThemeIcon color="lime" variant="light" style={{ cursor: "pointer" }}>
             <IconEdit size={20} stroke={1.5} />
           </ThemeIcon>
         </>
@@ -197,16 +215,17 @@ export default function Employee() {
       <Drawer
         opened={opened}
         onClose={() => setOpened(false)}
-        title='Employee'
-        padding='xl'
-        size='xl'
-        position='right'>
+        title="Employee"
+        padding="xl"
+        size="xl"
+        position="right"
+      >
         {/* Drawer content */}
-        <Form method='post'>
-          <Stack spacing='sm' align='stretch'>
+        <Form method="post">
+          <Stack spacing="sm" align="stretch">
             <Select
-              variant='filled'
-              name='userId'
+              variant="filled"
+              name="userId"
               data={users.map((data) => {
                 const result = {
                   value: data.userId,
@@ -216,135 +235,124 @@ export default function Employee() {
               })}
               searchable
               clearable
-              placeholder='Select Email'
-              label='Email'
+              placeholder="Select Email"
+              label="Email"
               required
             />
             <Group grow>
               <TextInput
-                variant='filled'
-                name='firstName'
-                placeholder='Your First Name'
-                label='Full Name'
+                variant="filled"
+                name="firstName"
+                placeholder="Your First Name"
+                label="Full Name"
                 required
               />
               <TextInput
-                variant='filled'
-                name='lastName'
-                placeholder='Your Last Name'
-                label='Last Name'
+                variant="filled"
+                name="lastName"
+                placeholder="Your Last Name"
+                label="Last Name"
                 required
               />
             </Group>
-            <Group position='apart' grow>
-              <Radio.Group label='Gender' spacing='xl' required>
-                <Radio value='F' name='gender' label='Female' />
-                <Radio value='M' name='gender' label='Male' />
+            <Group position="apart" grow>
+              <Radio.Group label="Gender" spacing="xl" required>
+                <Radio value="F" name="gender" label="Female" />
+                <Radio value="M" name="gender" label="Male" />
               </Radio.Group>
-              <Radio.Group label='Status JOB' spacing='xl' required>
-                <Radio value='true' name='isActive' label='Active' />
-                <Radio value='false' name='isActive' label='Not Active' />
+              <Radio.Group label="Status JOB" spacing="xl" required>
+                <Radio value="true" name="isActive" label="Active" />
+                <Radio value="false" name="isActive" label="Not Active" />
               </Radio.Group>
             </Group>
-            <Group position='apart' grow>
+            <Group position="apart" grow>
               <DatePicker
-                variant='filled'
-                name='birthDay'
-                locale='id'
-                placeholder='Pick date'
+                variant="filled"
+                name="birthDay"
+                locale="id"
+                placeholder="Pick date"
                 icon={<IconCalendar size={16} />}
-                label='Birth Day'
+                label="Birth Day"
                 allowFreeInput
-                inputFormat='YYYY-MM-DD'
+                inputFormat="YYYY-MM-DD"
               />
               <NumberInput
-                variant='filled'
-                name='phone'
+                variant="filled"
+                name="phone"
                 hideControls
-                label='No Handphone'
+                label="No Handphone"
                 required
               />
             </Group>
-            <Group position='apart' grow>
+            <Group position="apart" grow>
               <DatePicker
-                variant='filled'
-                name='joinDate'
-                locale='id'
-                placeholder='Pick date'
+                variant="filled"
+                name="joinDate"
+                locale="id"
+                placeholder="Pick date"
                 icon={<IconCalendar size={16} />}
-                label='Join Date'
+                label="Join Date"
                 allowFreeInput
-                inputFormat='YYYY-MM-DD'
+                inputFormat="YYYY-MM-DD"
               />
               <DatePicker
-                variant='filled'
-                name='endDate'
-                locale='id'
-                placeholder='Pick date'
+                variant="filled"
+                name="endDate"
+                locale="id"
+                placeholder="Pick date"
                 icon={<IconCalendar size={16} />}
-                label='End Date'
-                inputFormat='YYYY-MM-DD'
+                label="End Date"
+                inputFormat="YYYY-MM-DD"
                 allowFreeInput
               />
             </Group>
             <Select
-              variant='filled'
-              name='jobTitle'
+              variant="filled"
+              name="jobTitle"
               data={["Sales", "SPG", "Supervisior"]}
               searchable
               clearable
-              placeholder='Select Title'
-              label='Job Title'
+              placeholder="Select Title"
+              label="Job Title"
               required
             />
             <Textarea
-              variant='filled'
-              name='address'
-              placeholder='Address'
-              label='Address'
+              variant="filled"
+              name="address"
+              placeholder="Address"
+              label="Address"
               required
             />
           </Stack>
-          <Button type='submit' mt={20} name='action' value='createEmploye'>
+          <Button type="submit" mt={20} name="action" value="createEmploye">
             Add Data Employe
           </Button>
         </Form>
       </Drawer>
       <Paper
-        radius='md'
-        p='sm'
+        radius="md"
+        p="sm"
         withBorder
         style={{
           borderWidth: "0px 0px 0px 5px",
           borderLeftColor: "tomato",
           marginBottom: "1rem",
-        }}>
+        }}
+      >
         <Title order={3}>Employee</Title>
       </Paper>
       <Button onClick={() => setOpened(true)}>Add Employee</Button>
       <Paper
-        shadow='sm'
-        radius='md'
+        shadow="sm"
+        radius="md"
         style={{
           width: "100%",
           padding: "20px 10px",
           overflow: "auto",
           marginTop: "1rem",
-        }}>
+        }}
+      >
         <DataTable data={data} columns={columns} />
-        <Pagination
-          total={3}
-          withEdges
-          position='right'
-          styles={(theme) => ({
-            item: {
-              "&[data-active]": {
-                backgroundImage: theme.colorScheme,
-              },
-              marginTop: "1rem",
-            },
-          })}
-        />
       </Paper>
     </>
   );

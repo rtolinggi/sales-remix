@@ -22,8 +22,23 @@ import UserButton from "~/components/UserButton";
 import { BrandJavascript } from "tabler-icons-react";
 import NavbarTitle from "~/components/Navbar/NavbarTitle";
 import { IconLogout, IconMessageCircle, IconSettings } from "@tabler/icons";
-import { Outlet, useSubmit, useTransition } from "@remix-run/react";
+import {
+  Outlet,
+  useLoaderData,
+  useSubmit,
+  useTransition,
+} from "@remix-run/react";
 import NavbarContent from "~/components/Navbar/NavbarContent";
+
+type UserProps = {
+  data: {
+    email: string;
+    employees: {
+      firstName: string;
+      lastName: string;
+    };
+  };
+};
 
 export const loader: LoaderFunction = async ({ request }) => {
   const user = await getUser(request);
@@ -31,6 +46,8 @@ export const loader: LoaderFunction = async ({ request }) => {
 };
 
 export default function AppShellDemo() {
+  const { data } = useLoaderData<UserProps>();
+  console.log(data);
   const logout = useSubmit();
   const transition = useTransition();
   const theme = useMantineTheme();
@@ -56,7 +73,10 @@ export default function AppShellDemo() {
             hiddenBreakpoint="sm"
           >
             <Navbar.Section>
-              <NavbarTitle name="rtolinggi" email="rtolinggi91@gmail.com" />
+              <NavbarTitle
+                name={`${data.employees.firstName} ${data.employees.lastName}`}
+                email={data.email}
+              />
               <Divider
                 my="md"
                 labelPosition="center"
@@ -100,10 +120,7 @@ export default function AppShellDemo() {
                   <Group position="center">
                     <Menu withArrow width={200}>
                       <Menu.Target>
-                        <UserButton
-                          image={IAvatar}
-                          email="rtolinggi91@gmail.com"
-                        />
+                        <UserButton image={IAvatar} email={data.email} />
                       </Menu.Target>
                       <Menu.Dropdown>
                         <Menu.Label>Application</Menu.Label>
