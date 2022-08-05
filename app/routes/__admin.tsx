@@ -47,7 +47,6 @@ export const loader: LoaderFunction = async ({ request }) => {
 
 export default function AppShellDemo() {
   const { data } = useLoaderData<UserProps>();
-  console.log(data);
   const logout = useSubmit();
   const transition = useTransition();
   const theme = useMantineTheme();

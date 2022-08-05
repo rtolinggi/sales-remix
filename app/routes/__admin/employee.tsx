@@ -14,6 +14,8 @@ import {
   Title,
   ColorSwatch,
   Avatar,
+  Text,
+  UnstyledButton,
 } from "@mantine/core";
 import { Form, useTransition } from "@remix-run/react";
 import { useEffect, useState } from "react";
@@ -33,6 +35,8 @@ import { createColumnHelper } from "@tanstack/react-table";
 import DataTable from "../../components/DataTable";
 import type { EmployeeTable } from "../../utils/types.server";
 import dayjs from "dayjs";
+import IAvatar from "../../assets/avatar.jpg";
+import { deleteUser } from "~/models/users.server";
 
 type LoaderProps = {
   users: Array<users>;
@@ -88,6 +92,25 @@ const schema = Z.object({
 export type ActionInput = Z.infer<typeof schema>;
 
 export const action: ActionFunction = async ({ request }) => {
+  // Delete
+  if (request.method === "DELETE" || request.method === "PUT") {
+    const { email, action } = Object.fromEntries(await request.formData());
+    if (
+      (typeof email === "string" || typeof action === "string") &&
+      (action === "deleteEmploye" || action === "updateEmploye")
+    ) {
+      if (action === "deleteEmploye") {
+        await deleteUser(email as string);
+        return json({ success: true, action: "delete" }, { status: 200 });
+      }
+      if (action === "updateEmploye") {
+        // await updateUser(email as string);
+        return json({ success: true, action: "edit" }, { status: 200 });
+      }
+    }
+    return json({ success: false });
+  }
+
   const { formData, errors } = await validateAction<ActionInput>({
     request,
     schema,
@@ -138,15 +161,21 @@ export default function Employee() {
       header: "Email",
     }),
     columnHelper.accessor((row) => `${row.firstName} ${row.lastName}`, {
-      id: "firstName",
+      id: "fullName",
       header: "Full Name",
-    }),
-    columnHelper.accessor("image", {
-      header: "Image",
-      cell: (props) => {
+      cell: (item) => {
         return (
           <>
-            <Avatar src="https://i.pravatar.cc/150" alt="it's me" radius="xl" />
+            <Group
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "start",
+              }}
+            >
+              <Avatar src={IAvatar} size={35} radius="xl" />
+              <Text>{item.getValue()}</Text>
+            </Group>
           </>
         );
       },
@@ -183,21 +212,48 @@ export default function Employee() {
     columnHelper.display({
       id: "action",
       header: "Actions",
-      cell: (props) => (
-        <>
-          <ThemeIcon
-            color="red"
-            variant="light"
-            style={{ cursor: "pointer", marginRight: "10px" }}
-            onClick={() => data[parseInt(props.row.id)].email}
-          >
-            <IconTrash size={20} stroke={1.5} />
-          </ThemeIcon>
-          <ThemeIcon color="lime" variant="light" style={{ cursor: "pointer" }}>
-            <IconEdit size={20} stroke={1.5} />
-          </ThemeIcon>
-        </>
-      ),
+      cell: (props) => {
+        const idEmail = props.row.getAllCells().map((item) => item.getValue());
+
+        return (
+          <>
+            <Form method="delete">
+              <ThemeIcon
+                color="red"
+                variant="light"
+                style={{ cursor: "pointer", marginRight: "10px" }}
+              >
+                <UnstyledButton
+                  type="submit"
+                  name="action"
+                  value="deleteEmploye"
+                >
+                  <input
+                    type="hidden"
+                    name="email"
+                    value={idEmail[1] as string}
+                  />
+                  <IconTrash size={20} stroke={1.5} />
+                </UnstyledButton>
+              </ThemeIcon>
+            </Form>
+            <ThemeIcon
+              color="lime"
+              variant="light"
+              style={{ cursor: "pointer" }}
+            >
+              <UnstyledButton
+                type="submit"
+                name="action"
+                value="updateEmploye"
+                onClick={() => setOpened(true)}
+              >
+                <IconEdit size={20} stroke={1.5} />
+              </UnstyledButton>
+            </ThemeIcon>
+          </>
+        );
+      },
     }),
   ];
 
@@ -210,6 +266,7 @@ export default function Employee() {
       setOpened(false);
     }
   }, [transition]);
+
   return (
     <>
       <Drawer

@@ -9,7 +9,6 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { IconArrowDown, IconArrowUp } from "@tabler/icons";
-import { usePagination } from "@mantine/hooks";
 
 type Props = {
   data: Array<{}>;
@@ -18,8 +17,6 @@ type Props = {
 
 const DataTable: React.FC<Props> = (props) => {
   const [sorting, setSorting] = useState<SortingState>([]);
-  const pagination = usePagination({ total: 5, initialPage: 1 });
-  console.log(pagination);
   const table = useReactTable({
     data: props.data,
     columns: props.columns,

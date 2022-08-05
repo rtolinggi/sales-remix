@@ -2,6 +2,36 @@ import { prisma } from "../utils/prisma.server";
 import type { RegisterForm } from "../utils/types.server";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
+import { json } from "@remix-run/node";
+
+export const deleteUser = async (email: string) => {
+  try {
+    const removeUser = await prisma.users.delete({
+      where: {
+        email,
+      },
+    });
+    return removeUser;
+  } catch (error) {
+    console.log(error);
+    return json({ success: false, errors: error });
+  }
+};
+
+export const updateUser = async (email: string) => {
+  try {
+    const removeUser = await prisma.users.update({
+      where: {
+        email,
+      },
+      data: {},
+    });
+    return removeUser;
+  } catch (error) {
+    console.log(error);
+    return json({ success: false, errors: error });
+  }
+};
 
 export const createUser = async (user: RegisterForm) => {
   const { email, passwordHash } = user;
