@@ -23,6 +23,9 @@ export const getEmployee = async () => {
       include: {
         users: true,
       },
+      orderBy: {
+        createdAt: "desc",
+      },
     });
     return employees;
   } catch (error) {
@@ -37,6 +40,9 @@ export const getEmail = async () => {
       },
       where: {
         employees: null,
+      },
+      orderBy: {
+        createdAt: "desc",
       },
     });
     return email;
@@ -67,7 +73,7 @@ export const createEmployee = async (data: FormEmployee) => {
         userId: data.userId,
       },
       data: {
-        isActive: Boolean(data.isActive),
+        isActive: JSON.parse(data.isActive),
       },
     });
 
@@ -95,16 +101,46 @@ export const deleteEmployee = async (data: string) => {
         },
       },
     });
-
-    //   if (employeeId) {
-    //  const deleteEmployeWithUser = await prisma.employees.delete({
-    //   where: {
-    //     employeeId: employeeId.
-    //   }
-    // })
     return employeeId;
   } catch (error) {
     console.log(error);
     return false;
+  }
+};
+
+export const updateEmployee = async (data: FormEmployee) => {
+  try {
+    const updateEmployee = await prisma.employees.update({
+      where: {
+        userId: data.userId,
+      },
+      data: {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        jobTitle: data.jobTitle,
+        birthDay: new Date(data.birthDay),
+        joinDate: new Date(data.joinDate),
+        endDate: new Date(data.endDate),
+        address: data.address,
+        phone: data.phone,
+        gender: data.gender,
+      },
+    });
+    const updateUserActive = await prisma.users.update({
+      where: {
+        userId: data.userId,
+      },
+      data: {
+        isActive: JSON.parse(data.isActive),
+      },
+    });
+
+    if (updateEmployee && updateUserActive) {
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.log(error);
+    return json({ error: "Internal server error", status: 500 });
   }
 };

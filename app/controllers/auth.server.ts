@@ -93,6 +93,8 @@ export const logout = async (request: Request) => {
     headers: {
       "Set-Cookie": await storage.destroySession(session),
     },
+    status: 200,
+    statusText: "logout",
   });
 };
 

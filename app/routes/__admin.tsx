@@ -64,6 +64,7 @@ export default function AppShellDemo() {
           },
         }}
         navbarOffsetBreakpoint="sm"
+        fixed
         navbar={
           <Navbar
             p="md"

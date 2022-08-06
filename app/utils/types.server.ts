@@ -10,6 +10,7 @@ export type LoginForm = {
 };
 
 export type EmployeeTable = {
+  userId: string | null;
   email: string | undefined;
   firstName: string;
   lastName: string;

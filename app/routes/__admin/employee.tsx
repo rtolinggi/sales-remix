@@ -17,12 +17,21 @@ import {
   Text,
   UnstyledButton,
 } from "@mantine/core";
-import { Form, useTransition } from "@remix-run/react";
-import { useEffect, useState } from "react";
+import {
+  Form,
+  useActionData,
+  useSubmit,
+  useTransition,
+} from "@remix-run/react";
+import React, { useEffect, useState } from "react";
 import type { LoaderFunction, ActionFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
-import { createEmployee, getEmail } from "../../controllers/employee.server";
+import {
+  createEmployee,
+  getEmail,
+  updateEmployee,
+} from "../../controllers/employee.server";
 import { DatePicker } from "@mantine/dates";
 import type { employees, users } from "@prisma/client";
 import { IconCalendar, IconEdit, IconTrash, IconX } from "@tabler/icons";
@@ -37,10 +46,21 @@ import type { EmployeeTable } from "../../utils/types.server";
 import dayjs from "dayjs";
 import IAvatar from "../../assets/avatar.jpg";
 import { deleteUser } from "~/models/users.server";
+import { openConfirmModal } from "@mantine/modals";
 
 type LoaderProps = {
   users: Array<users>;
   employee: Array<employees & { users: users | undefined }>;
+};
+
+type DataAction = {
+  success: boolean;
+  errors?: string[];
+  action: string;
+  message?: {
+    title: string;
+    body: string;
+  };
 };
 
 export const loader: LoaderFunction = async ({ request }) => {
@@ -84,16 +104,20 @@ const schema = Z.object({
   jobTitle: Z.string(),
   isActive: Z.string(),
   action: Z.string().optional(),
-}).refine((data) => data.action === "createEmploye", {
-  message: "Action Not Allowed",
-  path: ["action"],
-});
+}).refine(
+  (data) => data.action === "createEmploye" || data.action === "updateEmploye",
+  {
+    message: "Action Not Allowed",
+    path: ["action"],
+  }
+);
 
 export type ActionInput = Z.infer<typeof schema>;
 
 export const action: ActionFunction = async ({ request }) => {
   // Delete
-  if (request.method === "DELETE" || request.method === "PUT") {
+  console.log(request.method);
+  if (request.method === "DELETE") {
     const { email, action } = Object.fromEntries(await request.formData());
     if (
       (typeof email === "string" || typeof action === "string") &&
@@ -101,11 +125,14 @@ export const action: ActionFunction = async ({ request }) => {
     ) {
       if (action === "deleteEmploye") {
         await deleteUser(email as string);
-        return json({ success: true, action: "delete" }, { status: 200 });
-      }
-      if (action === "updateEmploye") {
-        // await updateUser(email as string);
-        return json({ success: true, action: "edit" }, { status: 200 });
+        return json(
+          {
+            success: true,
+            action: "delete employee",
+            message: { title: "Delete Employe", body: "Data Has been Deleted" },
+          },
+          { status: 200 }
+        );
       }
     }
     return json({ success: false });
@@ -121,23 +148,65 @@ export const action: ActionFunction = async ({ request }) => {
   }
 
   const newFormData = { ...formData };
-  delete newFormData.action;
 
-  const result = await createEmployee(newFormData);
-  if (!result) {
-    return json({ success: false, errors }, { status: 400 });
+  // Create
+  if (request.method === "POST" && newFormData.action === "createEmploye") {
+    delete newFormData.action;
+    const result = await createEmployee(newFormData);
+    if (!result) {
+      return json({ success: false, errors }, { status: 400 });
+    }
+    return json(
+      {
+        success: true,
+        action: "post employee",
+        message: {
+          title: "Create Employee",
+          body: "Data Employee has been Created",
+        },
+      },
+      { status: 200 }
+    );
   }
 
-  return json({ success: true }, { status: 200 });
+  //  Update
+  if (request.method === "PUT" && newFormData.action === "updateEmploye") {
+    delete newFormData.action;
+    const result = await updateEmployee(newFormData);
+    if (!result) {
+      return json({ success: false, errors }, { status: 400 });
+    }
+    return json(
+      {
+        success: true,
+        action: "update employee",
+        message: {
+          title: "Update Employee",
+          body: "Data Employee has been Updated",
+        },
+      },
+      { status: 200 }
+    );
+  }
+
+  return json(
+    { success: false, errors: "Something wrong Errors" },
+    { status: 500 }
+  );
 };
 
 export default function Employee() {
   const { users, employee } = useLoaderData<LoaderProps>();
+  const dataAction = useActionData<DataAction>();
   const transition = useTransition();
+  const [actionUpdate, setActionUpdate] = useState<boolean>(false);
+  const [userEmail, setUserEmail] = useState<Array<string>>([]);
+  const submit = useSubmit();
   const [opened, setOpened] = useState<boolean>(false);
 
   const data: Array<EmployeeTable> = employee.map((item) => {
     const dataTable = {
+      userId: item.userId,
       email: item.users?.email,
       firstName: item.firstName,
       lastName: item.lastName,
@@ -159,6 +228,9 @@ export default function Employee() {
     }),
     columnHelper.accessor("email", {
       header: "Email",
+    }),
+    columnHelper.accessor("userId", {
+      header: "User ID",
     }),
     columnHelper.accessor((row) => `${row.firstName} ${row.lastName}`, {
       id: "fullName",
@@ -214,29 +286,44 @@ export default function Employee() {
       header: "Actions",
       cell: (props) => {
         const idEmail = props.row.getAllCells().map((item) => item.getValue());
-
         return (
-          <>
-            <Form method="delete">
-              <ThemeIcon
-                color="red"
-                variant="light"
-                style={{ cursor: "pointer", marginRight: "10px" }}
+          <Group spacing="xs">
+            <ThemeIcon
+              color="red"
+              variant="light"
+              style={{ cursor: "pointer", marginRight: "10px" }}
+            >
+              <UnstyledButton
+                onClick={() =>
+                  openConfirmModal({
+                    title: "Delete Employee",
+                    centered: true,
+                    children: (
+                      <Text size="sm">
+                        Are you sure you want to delete employee{" "}
+                        {idEmail[1] as string}?
+                      </Text>
+                    ),
+                    labels: {
+                      confirm: "Delete Employee",
+                      cancel: "No don't delete it",
+                    },
+                    onCancel: () => console.log("Cancel"),
+                    onConfirm: () => {
+                      submit(
+                        {
+                          action: "deleteEmploye",
+                          email: idEmail[1] as string,
+                        },
+                        { method: "delete" }
+                      );
+                    },
+                  })
+                }
               >
-                <UnstyledButton
-                  type="submit"
-                  name="action"
-                  value="deleteEmploye"
-                >
-                  <input
-                    type="hidden"
-                    name="email"
-                    value={idEmail[1] as string}
-                  />
-                  <IconTrash size={20} stroke={1.5} />
-                </UnstyledButton>
-              </ThemeIcon>
-            </Form>
+                <IconTrash size={20} stroke={1.5} />
+              </UnstyledButton>
+            </ThemeIcon>
             <ThemeIcon
               color="lime"
               variant="light"
@@ -246,50 +333,74 @@ export default function Employee() {
                 type="submit"
                 name="action"
                 value="updateEmploye"
-                onClick={() => setOpened(true)}
+                onClick={() => {
+                  setActionUpdate(true);
+                  setUserEmail(idEmail as Array<string>);
+                  setOpened(true);
+                }}
               >
                 <IconEdit size={20} stroke={1.5} />
               </UnstyledButton>
             </ThemeIcon>
-          </>
+          </Group>
         );
       },
     }),
   ];
 
+  const handleSubmitPost = (event: React.SyntheticEvent) => {
+    const currentTarget = (event.target as typeof event.target) && {};
+    submit(currentTarget, { replace: true });
+  };
+
   useEffect(() => {
-    if (transition.state === "submitting") {
+    if (transition.state === "loading") {
       showNotification({
-        title: "Created Employe",
-        message: "Employe Successfully created",
+        id: "loadingData",
+        title: dataAction?.message?.title,
+        message: dataAction?.message?.body,
+        autoClose: true,
       });
-      setOpened(false);
     }
+    setOpened(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [transition]);
 
   return (
     <>
       <Drawer
         opened={opened}
-        onClose={() => setOpened(false)}
+        onClose={() => {
+          setActionUpdate(false);
+          setOpened(false);
+        }}
         title="Employee"
         padding="xl"
         size="xl"
         position="right"
       >
         {/* Drawer content */}
-        <Form method="post">
+        <Form
+          method={actionUpdate ? "put" : "post"}
+          onSubmit={handleSubmitPost}
+        >
           <Stack spacing="sm" align="stretch">
             <Select
               variant="filled"
+              // disabled={actionUpdate}
+              defaultValue={actionUpdate ? userEmail[2] : null}
               name="userId"
-              data={users.map((data) => {
-                const result = {
-                  value: data.userId,
-                  label: data.email,
-                };
-                return result;
-              })}
+              data={
+                actionUpdate
+                  ? [{ value: userEmail[2], label: userEmail[1] }]
+                  : users.map((data) => {
+                      const result = {
+                        value: data.userId,
+                        label: data.email,
+                      };
+                      return result;
+                    })
+              }
               searchable
               clearable
               placeholder="Select Email"
@@ -298,6 +409,9 @@ export default function Employee() {
             />
             <Group grow>
               <TextInput
+                defaultValue={
+                  actionUpdate ? userEmail[3].split(" ")[0] : undefined
+                }
                 variant="filled"
                 name="firstName"
                 placeholder="Your First Name"
@@ -305,6 +419,9 @@ export default function Employee() {
                 required
               />
               <TextInput
+                defaultValue={
+                  actionUpdate ? userEmail[3].split(" ")[1] : undefined
+                }
                 variant="filled"
                 name="lastName"
                 placeholder="Your Last Name"
@@ -317,7 +434,14 @@ export default function Employee() {
                 <Radio value="F" name="gender" label="Female" />
                 <Radio value="M" name="gender" label="Male" />
               </Radio.Group>
-              <Radio.Group label="Status JOB" spacing="xl" required>
+              <Radio.Group
+                label="Status JOB"
+                spacing="xl"
+                required
+                defaultValue={
+                  actionUpdate ? JSON.stringify(userEmail[4]) : undefined
+                }
+              >
                 <Radio value="true" name="isActive" label="Active" />
                 <Radio value="false" name="isActive" label="Not Active" />
               </Radio.Group>
@@ -336,6 +460,7 @@ export default function Employee() {
               <NumberInput
                 variant="filled"
                 name="phone"
+                defaultValue={actionUpdate ? parseInt(userEmail[7]) : undefined}
                 hideControls
                 label="No Handphone"
                 required
@@ -346,6 +471,7 @@ export default function Employee() {
                 variant="filled"
                 name="joinDate"
                 locale="id"
+                defaultValue={actionUpdate ? new Date(userEmail[6]) : undefined}
                 placeholder="Pick date"
                 icon={<IconCalendar size={16} />}
                 label="Join Date"
@@ -366,6 +492,7 @@ export default function Employee() {
             <Select
               variant="filled"
               name="jobTitle"
+              defaultValue={actionUpdate ? userEmail[5] : undefined}
               data={["Sales", "SPG", "Supervisior"]}
               searchable
               clearable
@@ -381,8 +508,13 @@ export default function Employee() {
               required
             />
           </Stack>
-          <Button type="submit" mt={20} name="action" value="createEmploye">
-            Add Data Employe
+          <Button
+            type="submit"
+            mt={20}
+            name="action"
+            value={actionUpdate ? "updateEmploye" : "createEmploye"}
+          >
+            {actionUpdate ? "Update" : "Insert"}
           </Button>
         </Form>
       </Drawer>
@@ -398,7 +530,14 @@ export default function Employee() {
       >
         <Title order={3}>Employee</Title>
       </Paper>
-      <Button onClick={() => setOpened(true)}>Add Employee</Button>
+      <Button
+        onClick={() => {
+          setActionUpdate(false);
+          setOpened(true);
+        }}
+      >
+        Create Employee
+      </Button>
       <Paper
         shadow="sm"
         radius="md"

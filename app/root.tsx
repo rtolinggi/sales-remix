@@ -10,6 +10,7 @@ import {
 import ThemeProvider from "./themes";
 import { NotificationsProvider } from "@mantine/notifications";
 import { StylesPlaceholder } from "@mantine/remix";
+import { ModalsProvider } from "@mantine/modals";
 
 export const meta: MetaFunction = () => ({
   charset: "utf-8",
@@ -39,9 +40,11 @@ const App = () => {
   return (
     <Document>
       <ThemeProvider>
-        <NotificationsProvider position="top-center" autoClose={5000}>
-          <Outlet />
-        </NotificationsProvider>
+        <ModalsProvider>
+          <NotificationsProvider position="top-center" autoClose={5000}>
+            <Outlet />
+          </NotificationsProvider>
+        </ModalsProvider>
       </ThemeProvider>
     </Document>
   );
