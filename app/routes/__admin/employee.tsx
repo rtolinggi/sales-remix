@@ -17,13 +17,7 @@ import {
   Text,
   UnstyledButton,
 } from "@mantine/core";
-import {
-  Form,
-  useActionData,
-  useSubmit,
-  useTransition,
-} from "@remix-run/react";
-import React, { useEffect, useState } from "react";
+import { Form, useSubmit, useTransition } from "@remix-run/react";
 import type { LoaderFunction, ActionFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
@@ -34,33 +28,30 @@ import {
 } from "../../controllers/employee.server";
 import { DatePicker } from "@mantine/dates";
 import type { employees, users } from "@prisma/client";
-import { IconCalendar, IconEdit, IconTrash, IconX } from "@tabler/icons";
+import {
+  IconCalendar,
+  IconEdit,
+  IconSearch,
+  IconTrash,
+  IconX,
+} from "@tabler/icons";
 import { requireUserId } from "~/utils/session.server";
 import { validateAction } from "~/utils/validate.server";
 import * as Z from "zod";
 import { showNotification } from "@mantine/notifications";
 import { getEmployee } from "../../controllers/employee.server";
 import { createColumnHelper } from "@tanstack/react-table";
-import DataTable from "../../components/DataTable";
 import type { EmployeeTable } from "../../utils/types.server";
 import dayjs from "dayjs";
 import IAvatar from "../../assets/avatar.jpg";
 import { deleteUser } from "~/models/users.server";
 import { openConfirmModal } from "@mantine/modals";
+import DataTable from "~/components/DataTable";
+import { useEffect, useState } from "react";
 
 type LoaderProps = {
   users: Array<users>;
   employee: Array<employees & { users: users | undefined }>;
-};
-
-type DataAction = {
-  success: boolean;
-  errors?: string[];
-  action: string;
-  message?: {
-    title: string;
-    body: string;
-  };
 };
 
 export const loader: LoaderFunction = async ({ request }) => {
@@ -129,7 +120,6 @@ export const action: ActionFunction = async ({ request }) => {
           {
             success: true,
             action: "delete employee",
-            message: { title: "Delete Employe", body: "Data Has been Deleted" },
           },
           { status: 200 }
         );
@@ -159,11 +149,6 @@ export const action: ActionFunction = async ({ request }) => {
     return json(
       {
         success: true,
-        action: "post employee",
-        message: {
-          title: "Create Employee",
-          body: "Data Employee has been Created",
-        },
       },
       { status: 200 }
     );
@@ -179,11 +164,6 @@ export const action: ActionFunction = async ({ request }) => {
     return json(
       {
         success: true,
-        action: "update employee",
-        message: {
-          title: "Update Employee",
-          body: "Data Employee has been Updated",
-        },
       },
       { status: 200 }
     );
@@ -197,12 +177,19 @@ export const action: ActionFunction = async ({ request }) => {
 
 export default function Employee() {
   const { users, employee } = useLoaderData<LoaderProps>();
-  const dataAction = useActionData<DataAction>();
   const transition = useTransition();
   const [actionUpdate, setActionUpdate] = useState<boolean>(false);
   const [userEmail, setUserEmail] = useState<Array<string>>([]);
   const submit = useSubmit();
   const [opened, setOpened] = useState<boolean>(false);
+
+  const visibility = {
+    userId: false,
+    gender: false,
+    address: false,
+    birthDay: false,
+    endDate: false,
+  };
 
   const data: Array<EmployeeTable> = employee.map((item) => {
     const dataTable = {
@@ -215,6 +202,10 @@ export default function Employee() {
       phone: item.phone,
       joinDate: item.joinDate,
       isActive: item.users?.isActive,
+      gender: item.gender,
+      address: item.address,
+      birthDay: item.birthDay,
+      endDate: item.endDate,
     };
     return dataTable;
   });
@@ -230,7 +221,7 @@ export default function Employee() {
       header: "Email",
     }),
     columnHelper.accessor("userId", {
-      header: "User ID",
+      id: "userId",
     }),
     columnHelper.accessor((row) => `${row.firstName} ${row.lastName}`, {
       id: "fullName",
@@ -346,6 +337,18 @@ export default function Employee() {
         );
       },
     }),
+    columnHelper.accessor("gender", {
+      id: "gender",
+    }),
+    columnHelper.accessor("address", {
+      id: "address",
+    }),
+    columnHelper.accessor("birthDay", {
+      id: "birthDay",
+    }),
+    columnHelper.accessor("endDate", {
+      id: "endDate",
+    }),
   ];
 
   const handleSubmitPost = (event: React.SyntheticEvent) => {
@@ -353,12 +356,44 @@ export default function Employee() {
     submit(currentTarget, { replace: true });
   };
 
+  // const handleSearcInput = (event: React.ChangeEvent<HTMLInputElement>) => {
+  //   setSeacrhEmploye(event.target.value);
+  //   data.filter((item) => {
+  //     if (data.length === 0) return data;
+  //   });
+  // };
+
   useEffect(() => {
-    if (transition.state === "loading") {
+    if (
+      transition.state === "loading" &&
+      transition?.submission?.formData.get("action") === "createEmploye"
+    ) {
       showNotification({
         id: "loadingData",
-        title: dataAction?.message?.title,
-        message: dataAction?.message?.body,
+        title: "Create Employee",
+        message: "Create Employe Successfully",
+        autoClose: true,
+      });
+    }
+    if (
+      transition.state === "loading" &&
+      transition?.submission?.formData.get("action") === "updateEmploye"
+    ) {
+      showNotification({
+        id: "loadingData",
+        title: "Update Employee",
+        message: "Update Employe Successfully",
+        autoClose: true,
+      });
+    }
+    if (
+      transition.state === "submitting" &&
+      transition?.submission?.formData.get("action") === "deleteEmploye"
+    ) {
+      showNotification({
+        id: "loadingData",
+        title: "Delete Employee",
+        message: "Delete Employe Successfully",
         autoClose: true,
       });
     }
@@ -430,7 +465,12 @@ export default function Employee() {
               />
             </Group>
             <Group position="apart" grow>
-              <Radio.Group label="Gender" spacing="xl" required>
+              <Radio.Group
+                label="Gender"
+                spacing="xl"
+                required
+                defaultValue={actionUpdate ? userEmail[9] : undefined}
+              >
                 <Radio value="F" name="gender" label="Female" />
                 <Radio value="M" name="gender" label="Male" />
               </Radio.Group>
@@ -450,6 +490,9 @@ export default function Employee() {
               <DatePicker
                 variant="filled"
                 name="birthDay"
+                defaultValue={
+                  actionUpdate ? new Date(userEmail[11]) : undefined
+                }
                 locale="id"
                 placeholder="Pick date"
                 icon={<IconCalendar size={16} />}
@@ -482,6 +525,9 @@ export default function Employee() {
                 variant="filled"
                 name="endDate"
                 locale="id"
+                defaultValue={
+                  actionUpdate ? new Date(userEmail[12]) : undefined
+                }
                 placeholder="Pick date"
                 icon={<IconCalendar size={16} />}
                 label="End Date"
@@ -505,6 +551,7 @@ export default function Employee() {
               name="address"
               placeholder="Address"
               label="Address"
+              defaultValue={actionUpdate ? userEmail[10] : undefined}
               required
             />
           </Stack>
@@ -548,7 +595,15 @@ export default function Employee() {
           marginTop: "1rem",
         }}
       >
-        <DataTable data={data} columns={columns} />
+        <TextInput
+          name="searcEmploye"
+          placeholder="Search Employe"
+          icon={<IconSearch size={20} />}
+          style={{ width: "20rem" }}
+          // value={searchEmploye}
+          // onChange={handleSearcInput}
+        />
+        <DataTable data={data} columns={columns} visibility={visibility} />
       </Paper>
     </>
   );

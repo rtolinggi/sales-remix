@@ -13,16 +13,22 @@ import { IconArrowDown, IconArrowUp } from "@tabler/icons";
 type Props = {
   data: Array<{}>;
   columns: any;
+  visibility: {};
 };
 
 const DataTable: React.FC<Props> = (props) => {
   const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnVisibility, setColumnVisibility] = useState(props.visibility);
+  console.log(props.visibility);
+
   const table = useReactTable({
     data: props.data,
     columns: props.columns,
     state: {
       sorting,
+      columnVisibility,
     },
+    onColumnVisibilityChange: setColumnVisibility,
     onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),
     getCoreRowModel: getCoreRowModel(),
