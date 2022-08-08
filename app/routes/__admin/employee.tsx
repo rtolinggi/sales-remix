@@ -31,8 +31,9 @@ import type { employees, users } from "@prisma/client";
 import {
   IconCalendar,
   IconEdit,
-  IconSearch,
+  IconTableExport,
   IconTrash,
+  IconUserPlus,
   IconX,
 } from "@tabler/icons";
 import { requireUserId } from "~/utils/session.server";
@@ -40,14 +41,14 @@ import { validateAction } from "~/utils/validate.server";
 import * as Z from "zod";
 import { showNotification } from "@mantine/notifications";
 import { getEmployee } from "../../controllers/employee.server";
-import { createColumnHelper } from "@tanstack/react-table";
+import type { ColumnDef } from "@tanstack/react-table";
 import type { EmployeeTable } from "../../utils/types.server";
 import dayjs from "dayjs";
 import IAvatar from "../../assets/avatar.jpg";
 import { deleteUser } from "~/models/users.server";
 import { openConfirmModal } from "@mantine/modals";
 import DataTable from "~/components/DataTable";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type LoaderProps = {
   users: Array<users>;
@@ -210,158 +211,176 @@ export default function Employee() {
     return dataTable;
   });
 
-  const columnHelper = createColumnHelper<EmployeeTable>();
-  const columns = [
-    columnHelper.display({
-      id: "no",
-      header: "No.",
-      cell: (props) => parseInt(props.row.id) + 1,
-    }),
-    columnHelper.accessor("email", {
-      header: "Email",
-    }),
-    columnHelper.accessor("userId", {
-      id: "userId",
-    }),
-    columnHelper.accessor((row) => `${row.firstName} ${row.lastName}`, {
-      id: "fullName",
-      header: "Full Name",
-      cell: (item) => {
-        return (
-          <>
-            <Group
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "start",
-              }}
-            >
-              <Avatar src={IAvatar} size={35} radius="xl" />
-              <Text>{item.getValue()}</Text>
-            </Group>
-          </>
-        );
+  const columns = useMemo<ColumnDef<EmployeeTable, any>[]>(
+    () => [
+      {
+        id: "no",
+        header: "No.",
+        cell: (props) => parseInt(props.row.id) + 1,
       },
-    }),
-    columnHelper.accessor("isActive", {
-      header: "Active",
-      cell: (props) => {
-        const active = props.getValue();
-        return (
-          <Group position="center" spacing="xs">
-            <ColorSwatch color={active ? "green" : "red"}>
-              {active ? (
-                <CheckIcon width={10} color="white" />
-              ) : (
-                <IconX width={14} color="white" />
-              )}
-            </ColorSwatch>
-          </Group>
-        );
+      {
+        id: "email",
+        accessorKey: "email",
+        header: "Email",
+        filterFn: "arrIncludesAll",
       },
-    }),
-    columnHelper.accessor("jobTitle", {
-      header: "Job Title",
-    }),
-    columnHelper.accessor("joinDate", {
-      header: "Join Date",
-      cell: (props) => {
-        return <>{dayjs(props.getValue()).format("YYYY-MM-DD")}</>;
+      {
+        id: "userId",
+        accessorKey: "userId",
       },
-    }),
-    columnHelper.accessor("phone", {
-      header: "Phone",
-    }),
-    columnHelper.display({
-      id: "action",
-      header: "Actions",
-      cell: (props) => {
-        const idEmail = props.row.getAllCells().map((item) => item.getValue());
-        return (
-          <Group spacing="xs">
-            <ThemeIcon
-              color="red"
-              variant="light"
-              style={{ cursor: "pointer", marginRight: "10px" }}
-            >
-              <UnstyledButton
-                onClick={() =>
-                  openConfirmModal({
-                    title: "Delete Employee",
-                    centered: true,
-                    children: (
-                      <Text size="sm">
-                        Are you sure you want to delete employee{" "}
-                        {idEmail[1] as string}?
-                      </Text>
-                    ),
-                    labels: {
-                      confirm: "Delete Employee",
-                      cancel: "No don't delete it",
-                    },
-                    onCancel: () => console.log("Cancel"),
-                    onConfirm: () => {
-                      submit(
-                        {
-                          action: "deleteEmploye",
-                          email: idEmail[1] as string,
-                        },
-                        { method: "delete" }
-                      );
-                    },
-                  })
-                }
-              >
-                <IconTrash size={20} stroke={1.5} />
-              </UnstyledButton>
-            </ThemeIcon>
-            <ThemeIcon
-              color="lime"
-              variant="light"
-              style={{ cursor: "pointer" }}
-            >
-              <UnstyledButton
-                type="submit"
-                name="action"
-                value="updateEmploye"
-                onClick={() => {
-                  setActionUpdate(true);
-                  setUserEmail(idEmail as Array<string>);
-                  setOpened(true);
+      {
+        id: "fullName",
+        header: "Full Name",
+        filterFn: "arrIncludesAll",
+        accessorFn: (row) => `${row.firstName} ${row.lastName}`,
+        cell: (item) => {
+          return (
+            <>
+              <Group
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "start",
                 }}
               >
-                <IconEdit size={20} stroke={1.5} />
-              </UnstyledButton>
-            </ThemeIcon>
-          </Group>
-        );
+                <Avatar src={IAvatar} size={35} radius="xl" />
+                <Text>{item.getValue()}</Text>
+              </Group>
+            </>
+          );
+        },
       },
-    }),
-    columnHelper.accessor("gender", {
-      id: "gender",
-    }),
-    columnHelper.accessor("address", {
-      id: "address",
-    }),
-    columnHelper.accessor("birthDay", {
-      id: "birthDay",
-    }),
-    columnHelper.accessor("endDate", {
-      id: "endDate",
-    }),
-  ];
+      {
+        id: "isActive",
+        accessorKey: "isActive",
+        header: "Active",
+        cell: (props) => {
+          const active = props.getValue();
+          return (
+            <Group position="center" spacing="xs">
+              <ColorSwatch color={active ? "green" : "red"}>
+                {active ? (
+                  <CheckIcon width={10} color="white" />
+                ) : (
+                  <IconX width={14} color="white" />
+                )}
+              </ColorSwatch>
+            </Group>
+          );
+        },
+      },
+      {
+        accessorKey: "jobTitle",
+        header: "Job Title",
+        filterFn: "arrIncludesAll",
+      },
+      {
+        id: "joinDate",
+        accessorKey: "joinDate",
+        header: "Join Date",
+        filterFn: "arrIncludesAll",
+        cell: (props) => {
+          return <>{dayjs(props.getValue()).format("YYYY-MM-DD")}</>;
+        },
+      },
+      {
+        id: "phone",
+        accessorKey: "phone",
+        header: "Phone",
+        filterFn: "arrIncludesAll",
+      },
+      {
+        id: "action",
+        header: "Actions",
+        cell: (props) => {
+          const idEmail = props.row
+            .getAllCells()
+            .map((item) => item.getValue());
+          return (
+            <Group spacing="xs">
+              <ThemeIcon
+                color="red"
+                variant="light"
+                style={{ cursor: "pointer", marginRight: "10px" }}
+              >
+                <UnstyledButton
+                  onClick={() =>
+                    openConfirmModal({
+                      title: "Delete Employee",
+                      centered: true,
+                      children: (
+                        <Text size="sm">
+                          Are you sure you want to delete employee{" "}
+                          {idEmail[1] as string}?
+                        </Text>
+                      ),
+                      labels: {
+                        confirm: "Delete Employee",
+                        cancel: "No don't delete it",
+                      },
+                      onCancel: () => console.log("Cancel"),
+                      onConfirm: () => {
+                        submit(
+                          {
+                            action: "deleteEmploye",
+                            email: idEmail[1] as string,
+                          },
+                          { method: "delete" }
+                        );
+                      },
+                    })
+                  }
+                >
+                  <IconTrash size={20} stroke={1.5} />
+                </UnstyledButton>
+              </ThemeIcon>
+              <ThemeIcon
+                color="lime"
+                variant="light"
+                style={{ cursor: "pointer" }}
+              >
+                <UnstyledButton
+                  type="submit"
+                  name="action"
+                  value="updateEmploye"
+                  onClick={() => {
+                    setActionUpdate(true);
+                    setUserEmail(idEmail as Array<string>);
+                    setOpened(true);
+                  }}
+                >
+                  <IconEdit size={20} stroke={1.5} />
+                </UnstyledButton>
+              </ThemeIcon>
+            </Group>
+          );
+        },
+      },
+      {
+        id: "gender",
+        accessorKey: "gender",
+      },
+      {
+        id: "address",
+        accessorKey: "address",
+      },
+      {
+        id: "birthDay",
+        accessorKey: "birthDay",
+      },
+      {
+        id: "endDate",
+        accessorKey: "endDate",
+      },
+    ],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
+  );
 
   const handleSubmitPost = (event: React.SyntheticEvent) => {
     const currentTarget = (event.target as typeof event.target) && {};
     submit(currentTarget, { replace: true });
   };
-
-  // const handleSearcInput = (event: React.ChangeEvent<HTMLInputElement>) => {
-  //   setSeacrhEmploye(event.target.value);
-  //   data.filter((item) => {
-  //     if (data.length === 0) return data;
-  //   });
-  // };
 
   useEffect(() => {
     if (
@@ -577,14 +596,18 @@ export default function Employee() {
       >
         <Title order={3}>Employee</Title>
       </Paper>
-      <Button
-        onClick={() => {
-          setActionUpdate(false);
-          setOpened(true);
-        }}
-      >
-        Create Employee
-      </Button>
+      <Group position="left">
+        <Button
+          onClick={() => {
+            setActionUpdate(false);
+            setOpened(true);
+          }}
+          leftIcon={<IconUserPlus size={20} />}
+        >
+          Create Employee
+        </Button>
+        <Button leftIcon={<IconTableExport size={20} />}>Export Excel</Button>
+      </Group>
       <Paper
         shadow="sm"
         radius="md"
@@ -595,14 +618,6 @@ export default function Employee() {
           marginTop: "1rem",
         }}
       >
-        <TextInput
-          name="searcEmploye"
-          placeholder="Search Employe"
-          icon={<IconSearch size={20} />}
-          style={{ width: "20rem" }}
-          // value={searchEmploye}
-          // onChange={handleSearcInput}
-        />
         <DataTable data={data} columns={columns} visibility={visibility} />
       </Paper>
     </>

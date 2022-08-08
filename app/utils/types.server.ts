@@ -22,4 +22,5 @@ export type EmployeeTable = {
   isActive: boolean | undefined;
   address: string | null;
   birthDay: String | null;
+  endDate: string | null;
 };

@@ -1,14 +1,23 @@
 import React, { useState } from "react";
-import { Group, Pagination, Table as CTable, Text } from "@mantine/core";
+import {
+  Group,
+  Pagination,
+  Select,
+  Table as CTable,
+  Text,
+  TextInput,
+} from "@mantine/core";
+
 import type { SortingState } from "@tanstack/react-table";
 import {
   flexRender,
   getCoreRowModel,
   getSortedRowModel,
   getPaginationRowModel,
+  getFilteredRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { IconArrowDown, IconArrowUp } from "@tabler/icons";
+import { IconArrowDown, IconArrowUp, IconSearch } from "@tabler/icons";
 
 type Props = {
   data: Array<{}>;
@@ -16,20 +25,23 @@ type Props = {
   visibility: {};
 };
 
-const DataTable: React.FC<Props> = (props) => {
+const DataTable: React.FC<Props> = ({ columns, data, visibility }) => {
   const [sorting, setSorting] = useState<SortingState>([]);
-  const [columnVisibility, setColumnVisibility] = useState(props.visibility);
-  console.log(props.visibility);
+  const [globalFilter, setGlobalFilter] = useState<string>("");
+  const [columnVisibility, setColumnVisibility] = useState(visibility);
 
   const table = useReactTable({
-    data: props.data,
-    columns: props.columns,
+    data,
+    columns,
     state: {
+      globalFilter,
       sorting,
       columnVisibility,
     },
+    onGlobalFilterChange: setGlobalFilter,
     onColumnVisibilityChange: setColumnVisibility,
     onSortingChange: setSorting,
+    getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -38,6 +50,34 @@ const DataTable: React.FC<Props> = (props) => {
 
   return (
     <>
+      <Group
+        grow
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+        }}
+      >
+        <Group position="left">
+          <TextInput
+            name="searcEmploye"
+            placeholder="Search Employe...."
+            icon={<IconSearch size={20} />}
+            // style={{ width: "20rem" }}
+            value={globalFilter || ""}
+            onChange={(e) => setGlobalFilter(e.target.value)}
+          />
+        </Group>
+        <Group spacing="xs" position="right">
+          <Text>Showing</Text>
+          <Select
+            defaultValue={String(10)}
+            data={[String(5), String(10), String(15), String(20)]}
+            style={{ width: "4rem" }}
+            onChange={(e) => table.setPageSize(Number(e))}
+          />
+          <Text>Entries</Text>
+        </Group>
+      </Group>
       <CTable verticalSpacing="md" striped highlightOnHover>
         <thead>
           {table.getHeaderGroups().map((headerGroup) => (
@@ -99,9 +139,12 @@ const DataTable: React.FC<Props> = (props) => {
           justifyContent: "space-between",
         }}
       >
-        <Text>{`Page ${
-          table.getState().pagination.pageIndex + 1
-        } of  ${table.getPageCount()}`}</Text>
+        <Group>
+          <Text>{`Page ${
+            table.getState().pagination.pageIndex + 1
+          } of  ${table.getPageCount()}`}</Text>
+          <Text>{table.getPrePaginationRowModel().rows.length} Record</Text>
+        </Group>
         <Pagination
           page={table.getState().pagination.pageIndex + 1}
           total={table.getPageCount()}
