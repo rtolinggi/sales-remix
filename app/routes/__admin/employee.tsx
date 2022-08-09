@@ -31,7 +31,6 @@ import type { employees, users } from "@prisma/client";
 import {
   IconCalendar,
   IconEdit,
-  IconTableExport,
   IconTrash,
   IconUserPlus,
   IconX,
@@ -241,9 +240,8 @@ export default function Employee() {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "start",
-                }}
-              >
-                <Avatar src={IAvatar} size={35} radius="xl" />
+                }}>
+                <Avatar src={IAvatar} size={35} radius='xl' />
                 <Text>{item.getValue()}</Text>
               </Group>
             </>
@@ -257,12 +255,12 @@ export default function Employee() {
         cell: (props) => {
           const active = props.getValue();
           return (
-            <Group position="center" spacing="xs">
+            <Group position='center' spacing='xs'>
               <ColorSwatch color={active ? "green" : "red"}>
                 {active ? (
-                  <CheckIcon width={10} color="white" />
+                  <CheckIcon width={10} color='white' />
                 ) : (
-                  <IconX width={14} color="white" />
+                  <IconX width={14} color='white' />
                 )}
               </ColorSwatch>
             </Group>
@@ -297,19 +295,18 @@ export default function Employee() {
             .getAllCells()
             .map((item) => item.getValue());
           return (
-            <Group spacing="xs">
+            <Group spacing='xs'>
               <ThemeIcon
-                color="red"
-                variant="light"
-                style={{ cursor: "pointer", marginRight: "10px" }}
-              >
+                color='red'
+                variant='light'
+                style={{ cursor: "pointer", marginRight: "10px" }}>
                 <UnstyledButton
                   onClick={() =>
                     openConfirmModal({
                       title: "Delete Employee",
                       centered: true,
                       children: (
-                        <Text size="sm">
+                        <Text size='sm'>
                           Are you sure you want to delete employee{" "}
                           {idEmail[1] as string}?
                         </Text>
@@ -329,26 +326,23 @@ export default function Employee() {
                         );
                       },
                     })
-                  }
-                >
+                  }>
                   <IconTrash size={20} stroke={1.5} />
                 </UnstyledButton>
               </ThemeIcon>
               <ThemeIcon
-                color="lime"
-                variant="light"
-                style={{ cursor: "pointer" }}
-              >
+                color='lime'
+                variant='light'
+                style={{ cursor: "pointer" }}>
                 <UnstyledButton
-                  type="submit"
-                  name="action"
-                  value="updateEmploye"
+                  type='submit'
+                  name='action'
+                  value='updateEmploye'
                   onClick={() => {
                     setActionUpdate(true);
                     setUserEmail(idEmail as Array<string>);
                     setOpened(true);
-                  }}
-                >
+                  }}>
                   <IconEdit size={20} stroke={1.5} />
                 </UnstyledButton>
               </ThemeIcon>
@@ -428,22 +422,20 @@ export default function Employee() {
           setActionUpdate(false);
           setOpened(false);
         }}
-        title="Employee"
-        padding="xl"
-        size="xl"
-        position="right"
-      >
+        title='Employee'
+        padding='xl'
+        size='xl'
+        position='right'>
         {/* Drawer content */}
         <Form
           method={actionUpdate ? "put" : "post"}
-          onSubmit={handleSubmitPost}
-        >
-          <Stack spacing="sm" align="stretch">
+          onSubmit={handleSubmitPost}>
+          <Stack spacing='sm' align='stretch'>
             <Select
-              variant="filled"
+              variant='filled'
               // disabled={actionUpdate}
               defaultValue={actionUpdate ? userEmail[2] : null}
-              name="userId"
+              name='userId'
               data={
                 actionUpdate
                   ? [{ value: userEmail[2], label: userEmail[1] }]
@@ -457,8 +449,8 @@ export default function Employee() {
               }
               searchable
               clearable
-              placeholder="Select Email"
-              label="Email"
+              placeholder='Select Email'
+              label='Email'
               required
             />
             <Group grow>
@@ -466,158 +458,151 @@ export default function Employee() {
                 defaultValue={
                   actionUpdate ? userEmail[3].split(" ")[0] : undefined
                 }
-                variant="filled"
-                name="firstName"
-                placeholder="Your First Name"
-                label="Full Name"
+                variant='filled'
+                name='firstName'
+                placeholder='Your First Name'
+                label='Full Name'
                 required
               />
               <TextInput
                 defaultValue={
                   actionUpdate ? userEmail[3].split(" ")[1] : undefined
                 }
-                variant="filled"
-                name="lastName"
-                placeholder="Your Last Name"
-                label="Last Name"
+                variant='filled'
+                name='lastName'
+                placeholder='Your Last Name'
+                label='Last Name'
                 required
               />
             </Group>
-            <Group position="apart" grow>
+            <Group position='apart' grow>
               <Radio.Group
-                label="Gender"
-                spacing="xl"
+                label='Gender'
+                spacing='xl'
                 required
-                defaultValue={actionUpdate ? userEmail[9] : undefined}
-              >
-                <Radio value="F" name="gender" label="Female" />
-                <Radio value="M" name="gender" label="Male" />
+                defaultValue={actionUpdate ? userEmail[9] : undefined}>
+                <Radio value='F' name='gender' label='Female' />
+                <Radio value='M' name='gender' label='Male' />
               </Radio.Group>
               <Radio.Group
-                label="Status JOB"
-                spacing="xl"
+                label='Status JOB'
+                spacing='xl'
                 required
                 defaultValue={
                   actionUpdate ? JSON.stringify(userEmail[4]) : undefined
-                }
-              >
-                <Radio value="true" name="isActive" label="Active" />
-                <Radio value="false" name="isActive" label="Not Active" />
+                }>
+                <Radio value='true' name='isActive' label='Active' />
+                <Radio value='false' name='isActive' label='Not Active' />
               </Radio.Group>
             </Group>
-            <Group position="apart" grow>
+            <Group position='apart' grow>
               <DatePicker
-                variant="filled"
-                name="birthDay"
+                variant='filled'
+                name='birthDay'
                 defaultValue={
                   actionUpdate ? new Date(userEmail[11]) : undefined
                 }
-                locale="id"
-                placeholder="Pick date"
+                locale='id'
+                placeholder='Pick date'
                 icon={<IconCalendar size={16} />}
-                label="Birth Day"
+                label='Birth Day'
                 allowFreeInput
-                inputFormat="YYYY-MM-DD"
+                inputFormat='YYYY-MM-DD'
               />
               <NumberInput
-                variant="filled"
-                name="phone"
+                variant='filled'
+                name='phone'
                 defaultValue={actionUpdate ? parseInt(userEmail[7]) : undefined}
                 hideControls
-                label="No Handphone"
+                label='No Handphone'
                 required
               />
             </Group>
-            <Group position="apart" grow>
+            <Group position='apart' grow>
               <DatePicker
-                variant="filled"
-                name="joinDate"
-                locale="id"
+                variant='filled'
+                name='joinDate'
+                locale='id'
                 defaultValue={actionUpdate ? new Date(userEmail[6]) : undefined}
-                placeholder="Pick date"
+                placeholder='Pick date'
                 icon={<IconCalendar size={16} />}
-                label="Join Date"
+                label='Join Date'
                 allowFreeInput
-                inputFormat="YYYY-MM-DD"
+                inputFormat='YYYY-MM-DD'
               />
               <DatePicker
-                variant="filled"
-                name="endDate"
-                locale="id"
+                variant='filled'
+                name='endDate'
+                locale='id'
                 defaultValue={
                   actionUpdate ? new Date(userEmail[12]) : undefined
                 }
-                placeholder="Pick date"
+                placeholder='Pick date'
                 icon={<IconCalendar size={16} />}
-                label="End Date"
-                inputFormat="YYYY-MM-DD"
+                label='End Date'
+                inputFormat='YYYY-MM-DD'
                 allowFreeInput
               />
             </Group>
             <Select
-              variant="filled"
-              name="jobTitle"
+              variant='filled'
+              name='jobTitle'
               defaultValue={actionUpdate ? userEmail[5] : undefined}
               data={["Sales", "SPG", "Supervisior"]}
               searchable
               clearable
-              placeholder="Select Title"
-              label="Job Title"
+              placeholder='Select Title'
+              label='Job Title'
               required
             />
             <Textarea
-              variant="filled"
-              name="address"
-              placeholder="Address"
-              label="Address"
+              variant='filled'
+              name='address'
+              placeholder='Address'
+              label='Address'
               defaultValue={actionUpdate ? userEmail[10] : undefined}
               required
             />
           </Stack>
           <Button
-            type="submit"
+            type='submit'
             mt={20}
-            name="action"
-            value={actionUpdate ? "updateEmploye" : "createEmploye"}
-          >
+            name='action'
+            value={actionUpdate ? "updateEmploye" : "createEmploye"}>
             {actionUpdate ? "Update" : "Insert"}
           </Button>
         </Form>
       </Drawer>
       <Paper
-        radius="md"
-        p="sm"
+        radius='md'
+        p='sm'
         withBorder
         style={{
           borderWidth: "0px 0px 0px 5px",
           borderLeftColor: "tomato",
           marginBottom: "1rem",
-        }}
-      >
+        }}>
         <Title order={3}>Employee</Title>
       </Paper>
-      <Group position="left">
+      <Group position='left'>
         <Button
           onClick={() => {
             setActionUpdate(false);
             setOpened(true);
           }}
-          leftIcon={<IconUserPlus size={20} />}
-        >
+          leftIcon={<IconUserPlus size={20} />}>
           Create Employee
         </Button>
-        <Button leftIcon={<IconTableExport size={20} />}>Export Excel</Button>
       </Group>
       <Paper
-        shadow="sm"
-        radius="md"
+        shadow='sm'
+        radius='md'
         style={{
           width: "100%",
           padding: "20px 10px",
           overflow: "auto",
           marginTop: "1rem",
-        }}
-      >
+        }}>
         <DataTable data={data} columns={columns} visibility={visibility} />
       </Paper>
     </>
