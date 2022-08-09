@@ -12,6 +12,7 @@ import {
 import type { LoaderFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { Form } from "@remix-run/react";
+import { IconPlus } from "@tabler/icons";
 import { useState } from "react";
 import { requireUserId } from "~/utils/session.server";
 
@@ -30,7 +31,7 @@ export default function Store() {
         }}
         title="Create Store"
         padding="xl"
-        size="lg"
+        size="xl"
         position="right"
       >
         {/* Drawer content */}
@@ -84,7 +85,12 @@ export default function Store() {
               required
             />
           </Stack>
-          <Button type="submit" mt={20} name="action">
+          <Button
+            leftIcon={<IconPlus size={20} color="white" />}
+            type="submit"
+            mt={20}
+            name="action"
+          >
             Save
           </Button>
         </Form>
@@ -103,7 +109,12 @@ export default function Store() {
       >
         <Title order={3}>Store</Title>
       </Paper>
-      <Button onClick={() => setOpened(true)}>Add Store</Button>
+      <Button
+        leftIcon={<IconPlus size={20} color="white" />}
+        onClick={() => setOpened(true)}
+      >
+        Add Store
+      </Button>
     </>
   );
 }
