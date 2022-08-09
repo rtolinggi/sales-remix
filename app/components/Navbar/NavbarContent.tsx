@@ -3,7 +3,6 @@ import {
   IconChevronRight,
   IconUserCheck,
   IconDashboard,
-  IconBuilding,
   IconBuildingWarehouse,
 } from "@tabler/icons";
 import { Link, useLocation } from "@remix-run/react";
@@ -27,14 +26,20 @@ const data = [
     subLink: [
       {
         label: "Store",
-        to: "setting",
-        pathName: "/setting",
+        to: "store",
+        pathName: "/store",
         color: "cyan",
       },
       {
         label: "Supplier",
-        to: "setting",
-        pathName: "/setting",
+        to: "supplier",
+        pathName: "/supplier",
+        color: "cyan",
+      },
+      {
+        label: "Cluster",
+        to: "cluster",
+        pathName: "/cluster",
         color: "cyan",
       },
     ],
@@ -59,10 +64,11 @@ const NabarContent: React.FC = () => {
       label={item.label}
       rightSection={item.rightSection}
       icon={
-        <ThemeIcon color={item.color} variant='light'>
+        <ThemeIcon color={item.color} variant="light">
           <item.icon size={16} stroke={1.5} />
         </ThemeIcon>
-      }>
+      }
+    >
       {item.subLink
         ? item.subLink.map((index) => (
             <NavLink
