@@ -39,7 +39,7 @@ export const getCluster = async () => {
         sub_clusters: true,
       },
       orderBy: {
-        clusterName: "asc",
+        clusterId: "desc",
       },
     });
     if (cluster) return cluster;
