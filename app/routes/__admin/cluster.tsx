@@ -199,7 +199,11 @@ export default function Cluster() {
                         name='clusterId'
                         value={item.clusterId}
                       />
-                      <Input type='hidden' value={subClusterName} />
+                      <Input
+                        type='hidden'
+                        value={subClusterName}
+                        id={item.clusterId}
+                      />
                       <Input
                         onChange={handleChangeSubClusterName}
                         ref={inputSubClusterRef}

@@ -85,7 +85,7 @@ model products {
 }
 
 model stores {
-  storeId       String        @id @db.VarChar(45) @map("store_id")
+  storeId       String        @id @db.VarChar(45) @default(uuid()) @map("store_id")
   subClusterId  Int?          @map("sub_cluster_id")
   storeName     String        @db.VarChar(250) @map("store_name")
   ownerName     String?       @db.VarChar(199) @map("owner_name")
