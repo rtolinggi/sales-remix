@@ -32,6 +32,17 @@ export const createCluster = async (name: string) => {
     return json({ error: "Internal server error" }, { status: 500 });
   }
 };
+
+export const getSubCluster = async () => {
+  try {
+    const subCluster = await prisma.sub_clusters.findMany();
+    if (!subCluster) return false;
+    return subCluster;
+  } catch (error) {
+    console.log(error);
+    return json({ success: false, errors: error }, { status: 500 });
+  }
+};
 export const getCluster = async () => {
   try {
     const cluster = await prisma.clusters.findMany({

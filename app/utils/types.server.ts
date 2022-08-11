@@ -24,3 +24,13 @@ export type EmployeeTable = {
   birthDay: String | null;
   endDate: string | null;
 };
+
+export type StoreTable = {
+  storeId: string;
+  storeName: string;
+  ownerName: string | null;
+  address: string;
+  phone: string;
+  subClusterId: number | null;
+  subClusterName: string | null | undefined;
+};

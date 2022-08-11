@@ -10,6 +10,35 @@ export type FormStore = {
   actions?: string;
 };
 
+export const getDataCluster = async () => {};
+
+export const getDataStore = async () => {
+  try {
+    const dataStore = await prisma.stores.findMany({
+      select: {
+        storeId: true,
+        storeName: true,
+        ownerName: true,
+        phone: true,
+        address: true,
+        subClusterId: true,
+        createdAt: true,
+        updatedAt: true,
+        subClusters: {
+          select: {
+            subClusterName: true,
+          },
+        },
+      },
+    });
+    if (dataStore.length === 0)
+      return json({ success: true, message: "Data is Empty" }, { status: 200 });
+    return dataStore;
+  } catch (error) {
+    console.log(error);
+    return json({ success: false }, { status: 500 });
+  }
+};
 export const createStore = async (data: FormStore) => {
   try {
     const insertDataStore = await prisma.stores.create({
