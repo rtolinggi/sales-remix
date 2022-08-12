@@ -43,7 +43,7 @@ export const createStore = async (data: FormStore) => {
   try {
     const insertDataStore = await prisma.stores.create({
       data: {
-        subClusterId: parseInt(data.subClusterId),
+        subClusterId: parseInt(JSON.parse(data.subClusterId)),
         storeName: data.storeName,
         ownerName: data.ownerName,
         address: data.address,
@@ -56,5 +56,20 @@ export const createStore = async (data: FormStore) => {
   } catch (error) {
     console.log(error);
     return json({ success: false }, { status: 500 });
+  }
+};
+
+export const deleteStore = async (idStore: string) => {
+  try {
+    const deleteStoreData = await prisma.stores.delete({
+      where: {
+        storeId: idStore,
+      },
+    });
+    if (!deleteStoreData) return json({ success: false }, { status: 400 });
+    return deleteStoreData;
+  } catch (error) {
+    console.log(error);
+    json({ success: false, error }, { status: 500 });
   }
 };

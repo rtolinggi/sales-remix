@@ -5,6 +5,7 @@ type PropsSubCluster = {
   clusterId: number;
   subClusterName: string;
 };
+
 export const createSubCluster = async (data: PropsSubCluster) => {
   try {
     const insertSubCluster = await prisma.sub_clusters.create({
@@ -35,14 +36,39 @@ export const createCluster = async (name: string) => {
 
 export const getSubCluster = async () => {
   try {
-    const subCluster = await prisma.sub_clusters.findMany();
-    if (!subCluster) return false;
+    const _subCluster = await prisma.sub_clusters.findMany({
+      select: {
+        clusterId: true,
+        id: true,
+        subClusterName: true,
+        clusters: {
+          select: {
+            clusterName: true,
+          },
+        },
+      },
+      orderBy: {
+        clusterId: "desc",
+      },
+    });
+    if (!_subCluster) return false;
+    const subCluster = _subCluster.map((item) => {
+      return {
+        id: JSON.stringify(item.id),
+        clusterId: JSON.stringify(item.clusterId),
+        subClusterName: item.subClusterName,
+        clusters: {
+          clusterName: item.clusters.clusterName,
+        },
+      };
+    });
     return subCluster;
   } catch (error) {
     console.log(error);
     return json({ success: false, errors: error }, { status: 500 });
   }
 };
+
 export const getCluster = async () => {
   try {
     const cluster = await prisma.clusters.findMany({

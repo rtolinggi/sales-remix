@@ -22,15 +22,19 @@ import {
   useSubmit,
   useTransition,
 } from "@remix-run/react";
-import { IconEdit, IconPlus, IconTrash } from "@tabler/icons";
-import { useEffect, useMemo, useState } from "react";
+import { IconCirclePlus, IconEdit, IconTrash } from "@tabler/icons";
+import { forwardRef, useEffect, useMemo, useState } from "react";
 import { requireUserId } from "~/utils/session.server";
 import { validateAction } from "~/utils/validate.server";
-import { createStore, getDataStore } from "~/controllers/store.server";
+import {
+  createStore,
+  deleteStore,
+  getDataStore,
+} from "~/controllers/store.server";
 import type { FormStore } from "~/controllers/store.server";
 import { showNotification } from "@mantine/notifications";
 import type { StoreTable } from "~/utils/types.server";
-import type { stores, sub_clusters } from "@prisma/client";
+import type { clusters, stores, sub_clusters } from "@prisma/client";
 import type { ColumnDef } from "@tanstack/react-table";
 import { openConfirmModal } from "@mantine/modals";
 import DataTable from "~/components/DataTable";
@@ -42,14 +46,11 @@ type LoaderProps = {
       subClusters: sub_clusters | undefined;
     }
   >;
-  cluster: Array<{
-    Id: number;
-    clusterid: number;
-    subClusterName: string;
-  }>;
+  cluster: Array<sub_clusters & { clusters: clusters | undefined }>;
 };
 
 const schema = Z.object({
+  storeId: Z.string().optional(),
   subClusterId: Z.string(),
   storeName: Z.string({
     required_error: "Store Name is required",
@@ -68,9 +69,31 @@ const schema = Z.object({
   }
 );
 
+interface ItemProps extends React.ComponentPropsWithoutRef<"div"> {
+  label: string;
+  description: string;
+}
+
 export type ActionInput = Z.infer<typeof schema>;
 
 export const action: ActionFunction = async ({ request }) => {
+  // Delete
+
+  if (request.method === "DELETE") {
+    const { storeId, action } = Object.fromEntries(await request.formData());
+    console.log("storeId : ", storeId);
+    console.log("action : ", action);
+    if (
+      typeof storeId === "string" &&
+      typeof action === "string" &&
+      action === "deleteStore"
+    ) {
+      const result = await deleteStore(storeId);
+      if (!result) return json({ success: false }, { status: 400 });
+      return json({ success: true }, { status: 200 });
+    }
+  }
+
   // Post
   const { formData, errors } = await validateAction<ActionInput>({
     request,
@@ -85,6 +108,7 @@ export const action: ActionFunction = async ({ request }) => {
     if (!result) return json({ success: false }, { status: 400 });
     return json({ success: true }, { status: 200 });
   }
+
   return json({ success: false }, { status: 500 });
 };
 
@@ -102,10 +126,40 @@ export const loader: LoaderFunction = async ({ request }) => {
 
 export default function Store() {
   const { store, cluster } = useLoaderData<LoaderProps>();
-  console.log(cluster);
   const transition = useTransition();
   const [opened, setOpened] = useState<boolean>(false);
   const submit = useSubmit();
+
+  const seen = new Set();
+
+  const selectClusterData = cluster
+    .filter((item) => {
+      const duplicate = seen.has(item.subClusterName);
+      seen.add(item.subClusterName);
+      return !duplicate;
+    })
+    .map((item) => {
+      return {
+        value: JSON.stringify(item.id),
+        label: item.subClusterName as string | undefined,
+        description: item?.clusters?.clusterName,
+      };
+    });
+
+  const SelectItem = forwardRef<HTMLDivElement, ItemProps>(
+    ({ label, description, ...others }: ItemProps, ref) => (
+      <div ref={ref} {...others}>
+        <Group noWrap>
+          <div>
+            <Text size='sm'>{label}</Text>
+            <Text size='xs' color='dimmed'>
+              Cluster - {description}
+            </Text>
+          </div>
+        </Group>
+      </div>
+    )
+  );
 
   const visibility = {
     storeId: false,
@@ -173,59 +227,55 @@ export default function Store() {
             .getAllCells()
             .map((item) => item.getValue());
           return (
-            <Group spacing="xs">
+            <Group spacing='xs'>
               <ThemeIcon
-                color="red"
-                variant="light"
-                style={{ cursor: "pointer", marginRight: "10px" }}
-              >
+                color='red'
+                variant='light'
+                style={{ cursor: "pointer", marginRight: "10px" }}>
                 <UnstyledButton
                   onClick={() =>
                     openConfirmModal({
-                      title: "Delete Employee",
+                      title: "Delete Store",
                       centered: true,
                       children: (
-                        <Text size="sm">
-                          Are you sure you want to delete employee{" "}
-                          {idStore[1] as string}?
+                        <Text size='sm'>
+                          Are you sure you want to delete Store{" "}
+                          {idStore[3] as string}?
                         </Text>
                       ),
                       labels: {
-                        confirm: "Delete Employee",
+                        confirm: "Delete Store",
                         cancel: "No don't delete it",
                       },
                       onCancel: () => console.log("Cancel"),
                       onConfirm: () => {
                         submit(
                           {
-                            action: "deleteEmploye",
-                            email: idStore[1] as string,
+                            action: "deleteStore",
+                            storeId: idStore[1] as string,
                           },
                           { method: "delete" }
                         );
                       },
                     })
-                  }
-                >
+                  }>
                   <IconTrash size={20} stroke={1.5} />
                 </UnstyledButton>
               </ThemeIcon>
               <ThemeIcon
-                color="lime"
-                variant="light"
-                style={{ cursor: "pointer" }}
-              >
+                color='lime'
+                variant='light'
+                style={{ cursor: "pointer" }}>
                 <UnstyledButton
-                  type="submit"
-                  name="action"
-                  value="updateEmploye"
+                  type='submit'
+                  name='action'
+                  value='updateEmploye'
                   onClick={() => {
                     console.log("Action Update");
                     // setActionUpdate(true);
                     // setUserEmail(idEmail as Array<string>);
                     // setOpened(true);
-                  }}
-                >
+                  }}>
                   <IconEdit size={20} stroke={1.5} />
                 </UnstyledButton>
               </ThemeIcon>
@@ -237,7 +287,6 @@ export default function Store() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     []
   );
-  console.log(data);
 
   useEffect(() => {
     if (
@@ -251,6 +300,18 @@ export default function Store() {
         autoClose: true,
       });
     }
+
+    if (
+      transition.state === "loading" &&
+      transition.submission?.formData.get("action") === "deleteStore"
+    ) {
+      showNotification({
+        id: "loadingData",
+        title: "Delete Store",
+        message: "Delete Store Successfully",
+        autoClose: true,
+      });
+    }
     setOpened(false);
   }, [transition]);
 
@@ -261,92 +322,98 @@ export default function Store() {
         onClose={() => {
           setOpened(false);
         }}
-        title="Create Store"
-        padding="xl"
-        size="xl"
-        position="right"
-      >
+        title='Create Store'
+        padding='xl'
+        size='xl'
+        position='right'>
         {/* Drawer content */}
-        <Form method="post">
-          <Stack spacing="sm" align="stretch">
+        <Form method='post'>
+          <Stack spacing='sm' align='stretch'>
             <TextInput
-              variant="filled"
-              name="storeName"
-              label="Store Name"
+              variant='filled'
+              name='storeName'
+              label='Store Name'
               required
             />
             <TextInput
-              variant="filled"
-              name="ownerName"
-              label="Owner Name"
+              variant='filled'
+              name='ownerName'
+              label='Owner Name'
               required
             />
             <NumberInput
-              variant="filled"
-              name="phone"
+              variant='filled'
+              name='phone'
               hideControls
-              label="No Handphone"
+              label='No Handphone'
               required
             />
             <Select
-              data={["1", "2", "3"]}
-              variant="filled"
-              name="subClusterId"
+              data={selectClusterData}
+              itemComponent={SelectItem}
+              // onChange={handleOnChangeSelect}
+              variant='filled'
+              label='Cluster'
+              name='subClusterId'
               searchable
               clearable
-              placeholder="Select Cluster"
-              label="Cluster Name"
+              placeholder='Select Cluster'
+              maxDropdownHeight={400}
+              nothingFound='Nobody here'
+              filter={(value, item) => {
+                if (item.label !== undefined) {
+                  const result =
+                    item.label
+                      .toLowerCase()
+                      .includes(value.toLowerCase().trim()) ||
+                    item.description
+                      .toLowerCase()
+                      .includes(value.toLowerCase().trim());
+                  return result;
+                }
+              }}
               required
             />
             <Textarea
-              variant="filled"
-              name="address"
-              placeholder="Address"
-              label="Address"
+              variant='filled'
+              name='address'
+              placeholder='Address'
+              label='Address'
               required
             />
           </Stack>
-          <Button
-            leftIcon={<IconPlus size={20} color="white" />}
-            type="submit"
-            mt={20}
-            name="action"
-            value="createStore"
-          >
-            Save
+          <Button type='submit' mt={20} name='action' value='createStore'>
+            Insert
           </Button>
         </Form>
       </Drawer>
 
       <Paper
-        radius="md"
-        p="sm"
+        radius='md'
+        p='sm'
         withBorder
         style={{
           borderLeftWidth: "5px",
           borderBottomWidth: "0px",
           borderLeftColor: "tomato",
           marginBottom: "1rem",
-        }}
-      >
+        }}>
         <Title order={3}>Store</Title>
       </Paper>
       <Button
-        leftIcon={<IconPlus size={20} color="white" />}
-        onClick={() => setOpened(true)}
-      >
-        Add Store
+        leftIcon={<IconCirclePlus size={20} />}
+        onClick={() => setOpened(true)}>
+        Create Store
       </Button>
       <Paper
-        shadow="sm"
-        radius="md"
+        shadow='sm'
+        radius='md'
         style={{
           width: "100%",
           padding: "20px 10px",
           overflow: "auto",
           marginTop: "1rem",
-        }}
-      >
+        }}>
         <DataTable data={data} columns={columns} visibility={visibility} />
       </Paper>
     </>

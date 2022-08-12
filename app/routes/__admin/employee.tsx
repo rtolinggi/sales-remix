@@ -107,7 +107,6 @@ export type ActionInput = Z.infer<typeof schema>;
 
 export const action: ActionFunction = async ({ request }) => {
   // Delete
-  console.log(request.method);
   if (request.method === "DELETE") {
     const { email, action } = Object.fromEntries(await request.formData());
     if (
