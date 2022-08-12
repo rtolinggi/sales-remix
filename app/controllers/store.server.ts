@@ -2,6 +2,7 @@ import { prisma } from "../utils/prisma.server";
 import { json } from "@remix-run/node";
 
 export type FormStore = {
+  storeId: string;
   subClusterId: string;
   storeName: string;
   ownerName: string;
@@ -30,6 +31,9 @@ export const getDataStore = async () => {
           },
         },
       },
+      orderBy: {
+        createdAt: "desc",
+      },
     });
     if (dataStore.length === 0)
       return json({ success: true, message: "Data is Empty" }, { status: 200 });
@@ -52,6 +56,30 @@ export const createStore = async (data: FormStore) => {
     });
 
     if (!insertDataStore) return false;
+    return true;
+  } catch (error) {
+    console.log(error);
+    return json({ success: false }, { status: 500 });
+  }
+};
+
+export const updateStore = async (data: FormStore) => {
+  try {
+    const updateDataStore = await prisma.stores.update({
+      where: {
+        storeId: data.storeId,
+      },
+      data: {
+        storeId: data.storeId,
+        subClusterId: parseInt(JSON.parse(data.subClusterId)),
+        storeName: data.storeName,
+        ownerName: data.ownerName,
+        address: data.address,
+        phone: data.phone,
+      },
+    });
+
+    if (!updateDataStore) return false;
     return true;
   } catch (error) {
     console.log(error);

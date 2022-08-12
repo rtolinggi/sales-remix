@@ -56,19 +56,20 @@ const DataTable: React.FC<Props> = ({ columns, data, visibility }) => {
         style={{
           display: "flex",
           justifyContent: "space-between",
-        }}>
-        <Group position='left'>
+        }}
+      >
+        <Group position="left">
           <TextInput
-            name='searcEmploye'
-            placeholder='Search Employe....'
+            name="searcEmploye"
+            placeholder="Search Employe...."
             icon={<IconSearch size={20} />}
             // style={{ width: "20rem" }}
             value={globalFilter || ""}
             onChange={(e) => setGlobalFilter(e.target.value)}
           />
-          <ExportToExcel fileName='dataemployee' apiData={data} />
+          <ExportToExcel fileName="dataemployee" apiData={data} />
         </Group>
-        <Group spacing='xs' position='right'>
+        <Group spacing="xs" position="right">
           <Text>Showing</Text>
           <Select
             defaultValue={String(10)}
@@ -79,7 +80,7 @@ const DataTable: React.FC<Props> = ({ columns, data, visibility }) => {
           <Text>Entries</Text>
         </Group>
       </Group>
-      <CTable verticalSpacing='md' striped highlightOnHover>
+      <CTable verticalSpacing="md" striped highlightOnHover>
         <thead>
           {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id}>
@@ -92,7 +93,8 @@ const DataTable: React.FC<Props> = ({ columns, data, visibility }) => {
                           ? { cursor: "pointer" }
                           : {},
                         onClick: header.column.getToggleSortingHandler(),
-                      }}>
+                      }}
+                    >
                       {flexRender(
                         header.column.columnDef.header,
                         header.getContext()
@@ -137,7 +139,8 @@ const DataTable: React.FC<Props> = ({ columns, data, visibility }) => {
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-        }}>
+        }}
+      >
         <Group>
           <Text>{`Page ${
             table.getState().pagination.pageIndex + 1
@@ -151,7 +154,7 @@ const DataTable: React.FC<Props> = ({ columns, data, visibility }) => {
           onChange={(page) => {
             table.setPageIndex(page - 1);
           }}
-          position='right'
+          position="right"
           styles={(theme) => ({
             item: {
               "&[data-active]": {
