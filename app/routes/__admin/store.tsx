@@ -28,7 +28,7 @@ import {
   IconEdit,
   IconTrash,
 } from "@tabler/icons";
-import { forwardRef, useEffect, useMemo, useState } from "react";
+import React, { forwardRef, useEffect, useState } from "react";
 import { requireUserId } from "~/utils/session.server";
 import { validateAction } from "~/utils/validate.server";
 import {
@@ -43,8 +43,8 @@ import type { StoreTable } from "~/utils/types.server";
 import type { clusters, stores, sub_clusters } from "@prisma/client";
 import type { ColumnDef } from "@tanstack/react-table";
 import { openConfirmModal } from "@mantine/modals";
-import DataTable from "~/components/DataTable";
 import { getSubCluster } from "~/controllers/cluster.server";
+import DataTable from "~/components/DataTable";
 
 type LoaderProps = {
   store: Array<
@@ -56,8 +56,12 @@ type LoaderProps = {
 };
 
 const schema = Z.object({
-  storeId: Z.string().optional(),
-  subClusterId: Z.string(),
+  storeId: Z.string({
+    required_error: "Store Id is Required",
+  }),
+  subClusterId: Z.string({
+    required_error: "Sub Cluster Id is Required",
+  }),
   storeName: Z.string({
     required_error: "Store Name is required",
   }),
@@ -202,7 +206,7 @@ export default function Store() {
     return dataTable;
   });
 
-  const columns = useMemo<ColumnDef<StoreTable, any>[]>(
+  const columns = React.useMemo<ColumnDef<StoreTable, any>[]>(
     () => [
       {
         id: "no",
@@ -304,6 +308,7 @@ export default function Store() {
                   onClick={() => {
                     setActionUpdate(true);
                     setDataStore(idStore as Array<string>);
+                    console.log(dataStore);
                     setOpened(true);
                   }}
                 >
@@ -318,6 +323,11 @@ export default function Store() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     []
   );
+
+  const handleSubmit = (event: React.SyntheticEvent) => {
+    const currentTarget = (event.target as typeof event.target) && {};
+    submit(currentTarget, { replace: true });
+  };
 
   useEffect(() => {
     if (
@@ -358,11 +368,6 @@ export default function Store() {
     setOpened(false);
   }, [transition]);
 
-  const handleSubmit = (event: React.SyntheticEvent) => {
-    const currentTarget = (event.target as typeof event.target) && {};
-    submit(currentTarget, { replace: true });
-  };
-
   return (
     <>
       <Drawer
@@ -370,6 +375,7 @@ export default function Store() {
         onClose={() => {
           setActionUpdate(false);
           setOpened(false);
+          console.log(dataStore);
         }}
         title="Create Store"
         padding="xl"
@@ -404,17 +410,15 @@ export default function Store() {
             />
             <Select
               data={selectClusterData}
-              defaultValue={actionUpdate ? (dataStore[7] as string) : null}
+              defaultValue={actionUpdate ? "TESTING" : null}
+              name="subClusterId"
               itemComponent={SelectItem}
-              rightSection={<IconChevronDown size={14} />}
+              rightSection={<IconChevronDown size={16} />}
               variant="filled"
               label="Cluster"
-              name="subClusterId"
               searchable
               clearable
               placeholder="Select Cluster"
-              maxDropdownHeight={400}
-              nothingFound="Not Found"
               filter={(value, item) => {
                 if (item.label !== undefined) {
                   const result =
@@ -427,17 +431,6 @@ export default function Store() {
                   return result;
                 }
               }}
-              required
-            />
-            <Select
-              variant="filled"
-              name="jobTitle"
-              defaultValue={actionUpdate ? dataStore[7] : undefined}
-              data={["Sales", "SPG", "Supervisior"]}
-              searchable
-              clearable
-              placeholder="Select Title"
-              label="Job Title"
               required
             />
             <Textarea

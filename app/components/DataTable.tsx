@@ -8,7 +8,7 @@ import {
   TextInput,
 } from "@mantine/core";
 
-import type { SortingState } from "@tanstack/react-table";
+import type { FilterFn, SortingState } from "@tanstack/react-table";
 import {
   flexRender,
   getCoreRowModel,
@@ -26,10 +26,38 @@ type Props = {
   visibility: {};
 };
 
+declare module "@tanstack/table-core" {
+  interface FilterFns {
+    testFilter: FilterFn<unknown>;
+  }
+}
+
 const DataTable: React.FC<Props> = ({ columns, data, visibility }) => {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState<string>("");
   const [columnVisibility, setColumnVisibility] = useState(visibility);
+
+  function testFalsey(val: any) {
+    return val === undefined || val === null || val === "";
+  }
+  const testFilter: FilterFn<any> = (
+    row,
+    columnId: string,
+    filterValue: unknown
+  ) => {
+    console.log(columnId, filterValue);
+    return true;
+  };
+
+  testFilter.resolveFilterValue = (val: any) => {
+    console.log("resolveFilterValue", val);
+    return `${val}`;
+  };
+
+  testFilter.autoRemove = (val: any) => {
+    console.log("resolveFilterValue", val);
+    return testFalsey(`${val}`);
+  };
 
   const table = useReactTable({
     data,
@@ -38,6 +66,9 @@ const DataTable: React.FC<Props> = ({ columns, data, visibility }) => {
       globalFilter,
       sorting,
       columnVisibility,
+    },
+    filterFns: {
+      testFilter,
     },
     onGlobalFilterChange: setGlobalFilter,
     onColumnVisibilityChange: setColumnVisibility,
