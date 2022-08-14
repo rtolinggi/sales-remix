@@ -146,61 +146,62 @@ export default function Cluster() {
   return (
     <>
       <Paper
-        radius='md'
-        p='sm'
+        radius="md"
+        p="xl"
         withBorder
         style={{
-          borderLeftWidth: "5px",
-          borderBottomWidth: "0px",
+          borderWidth: "0px 0px 0px 5px",
           borderLeftColor: "tomato",
           marginBottom: "1rem",
-        }}>
+        }}
+      >
         <Title order={3}>Cluster</Title>
       </Paper>
-      <Paper radius='md' withBorder>
-        <Tabs defaultValue='cluster'>
+      <Paper radius="md" withBorder>
+        <Tabs defaultValue="cluster">
           <Tabs.List>
-            <Tabs.Tab value='cluster' icon={<IconPhoto size={14} />}>
+            <Tabs.Tab value="cluster" icon={<IconPhoto size={14} />}>
               <Text>Cluster</Text>
             </Tabs.Tab>
-            <Tabs.Tab value='subCluster' icon={<IconMessageCircle size={14} />}>
+            <Tabs.Tab value="subCluster" icon={<IconMessageCircle size={14} />}>
               <Text>Sub Cluster</Text>
             </Tabs.Tab>
           </Tabs.List>
 
-          <Tabs.Panel value='cluster' m={20} pt='xs'>
-            <Form method='post'>
-              <Group spacing='md' position='center'>
+          <Tabs.Panel value="cluster" m={20} pt="xs">
+            <Form method="post">
+              <Group spacing="md" position="center">
                 <Text>Cluster Name</Text>
                 <Input
                   ref={inputClusterRef}
-                  placeholder='Input Cluster Name'
-                  name='clusterName'
+                  placeholder="Input Cluster Name"
+                  name="clusterName"
                   required
                 />
                 <Button
-                  type='submit'
-                  name='action'
-                  value='insertCluster'
-                  color='white'>
+                  type="submit"
+                  name="action"
+                  value="insertCluster"
+                  color="white"
+                >
                   Add
                 </Button>
               </Group>
             </Form>
             <Divider my={10} />
-            <Accordion mx='auto' chevronPosition='left' sx={{ maxWidth: 700 }}>
+            <Accordion mx="auto" chevronPosition="left" sx={{ maxWidth: 700 }}>
               {cluster?.map((item, index) => (
                 <Accordion.Item value={item.clusterName} key={index}>
                   <AccordionControl>
-                    <Group grow position='apart'>
+                    <Group grow position="apart">
                       <Text>Cluster - {item.clusterName}</Text>
                       <Input
-                        type='hidden'
-                        name='clusterId'
+                        type="hidden"
+                        name="clusterId"
                         value={item.clusterId}
                       />
                       <Input
-                        type='hidden'
+                        type="hidden"
                         value={subClusterName}
                         id={item.clusterId}
                       />
@@ -221,7 +222,7 @@ export default function Cluster() {
             </Accordion>
           </Tabs.Panel>
 
-          <Tabs.Panel value='subCluster' m={20} pt='xs'>
+          <Tabs.Panel value="subCluster" m={20} pt="xs">
             Sub Cluster Content
           </Tabs.Panel>
         </Tabs>
@@ -254,20 +255,20 @@ const AccordionControl: React.FC = (props: AccordionControlProps | any) => {
   return (
     <Box sx={{ display: "flex", alignItems: "center" }}>
       <Accordion.Control {...props} />
-      <Menu position='right' withArrow>
+      <Menu position="right" withArrow>
         <Menu.Target>
-          <ActionIcon size='lg'>
+          <ActionIcon size="lg">
             <IconDots size={16} />
           </ActionIcon>
         </Menu.Target>
         <Menu.Dropdown>
           <Menu.Item
-            icon={<IconDeviceFloppy size={20} color='red' />}
+            icon={<IconDeviceFloppy size={20} color="red" />}
             onClick={handleSubmitInsertSubCluster}
           />
           <Menu.Divider />
           <Menu.Item
-            icon={<IconTrash size={20} color='red' />}
+            icon={<IconTrash size={20} color="red" />}
             onClick={handleSubmitDelete}
           />
         </Menu.Dropdown>

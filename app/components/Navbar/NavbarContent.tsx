@@ -4,6 +4,7 @@ import {
   IconUserCheck,
   IconDashboard,
   IconBuildingWarehouse,
+  IconBrandAppgallery,
 } from "@tabler/icons";
 import { Link, useLocation } from "@remix-run/react";
 import { Box, NavLink, ThemeIcon } from "@mantine/core";
@@ -43,6 +44,13 @@ const data = [
         color: "cyan",
       },
     ],
+  },
+  {
+    icon: IconBrandAppgallery,
+    label: "Products",
+    to: "product",
+    pathName: "/product",
+    color: "teal",
   },
   {
     icon: IconUserCheck,

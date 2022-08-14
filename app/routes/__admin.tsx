@@ -53,7 +53,16 @@ export default function AppShellDemo() {
   const [opened, setOpened] = useState<boolean>(true);
   return (
     <>
-      <LoadingOverlay visible={transition.submission ? true : false} />
+      <LoadingOverlay
+        visible={
+          transition.submission?.formData.get("action") !== "deleteCategory" &&
+          transition.submission?.formData.get("action") !== "createCategory" &&
+          transition.submission?.formData.get("action") !== "updateCategory" &&
+          transition.state === "submitting"
+            ? true
+            : false
+        }
+      />
       <AppShell
         styles={{
           main: {

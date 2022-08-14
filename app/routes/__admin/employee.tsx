@@ -46,8 +46,9 @@ import dayjs from "dayjs";
 import IAvatar from "../../assets/avatar.jpg";
 import { deleteUser } from "~/models/users.server";
 import { openConfirmModal } from "@mantine/modals";
-import DataTable from "~/components/DataTable";
+import TableEmployee from "~/components/DataTable";
 import React, { useEffect, useState } from "react";
+import { ExportToExcel } from "~/components/ExportData";
 
 type LoaderProps = {
   users: Array<users>;
@@ -220,7 +221,7 @@ export default function Employee() {
         id: "email",
         accessorKey: "email",
         header: "Email",
-        filterFn: "arrIncludesAll",
+        // filterFn: "arrIncludesAll",
       },
       {
         id: "userId",
@@ -229,7 +230,7 @@ export default function Employee() {
       {
         id: "fullName",
         header: "Full Name",
-        filterFn: "arrIncludesAll",
+        // filterFn: "arrIncludesAll",
         accessorFn: (row) => `${row.firstName} ${row.lastName}`,
         cell: (item) => {
           return (
@@ -270,13 +271,13 @@ export default function Employee() {
       {
         accessorKey: "jobTitle",
         header: "Job Title",
-        filterFn: "arrIncludesAll",
+        // filterFn: "arrIncludesAll",
       },
       {
         id: "joinDate",
         accessorKey: "joinDate",
         header: "Join Date",
-        filterFn: "arrIncludesAll",
+        // filterFn: "arrIncludesAll",
         cell: (props) => {
           return <>{dayjs(props.getValue()).format("YYYY-MM-DD")}</>;
         },
@@ -285,7 +286,7 @@ export default function Employee() {
         id: "phone",
         accessorKey: "phone",
         header: "Phone",
-        filterFn: "arrIncludesAll",
+        // filterFn: "arrIncludesAll",
       },
       {
         id: "action",
@@ -583,7 +584,7 @@ export default function Employee() {
       </Drawer>
       <Paper
         radius="md"
-        p="sm"
+        p="xl"
         withBorder
         style={{
           borderWidth: "0px 0px 0px 5px",
@@ -593,7 +594,7 @@ export default function Employee() {
       >
         <Title order={3}>Employee</Title>
       </Paper>
-      <Group position="left">
+      <Group spacing="xs">
         <Button
           onClick={() => {
             setActionUpdate(false);
@@ -603,6 +604,7 @@ export default function Employee() {
         >
           Create Employee
         </Button>
+        <ExportToExcel apiData={data} fileName="employee" />
       </Group>
       <Paper
         shadow="sm"
@@ -614,7 +616,7 @@ export default function Employee() {
           marginTop: "1rem",
         }}
       >
-        <DataTable data={data} columns={columns} visibility={visibility} />
+        <TableEmployee data={data} columns={columns} visibility={visibility} />
       </Paper>
     </>
   );

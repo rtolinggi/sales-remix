@@ -2,7 +2,7 @@ import { prisma } from "../utils/prisma.server";
 import { json } from "@remix-run/node";
 
 export type FormStore = {
-  storeId: string;
+  storeId?: string;
   subClusterId: string;
   storeName: string;
   ownerName: string;

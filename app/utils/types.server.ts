@@ -34,3 +34,10 @@ export type StoreTable = {
   subClusterId: number | null;
   subClusterName: string | null | undefined;
 };
+
+export type SupplierTable = {
+  supplierId: number;
+  supplierName: string;
+  phone: string;
+  address: string;
+};

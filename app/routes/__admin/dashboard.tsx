@@ -15,15 +15,15 @@ const DashboardPage = () => {
   return (
     <>
       <Paper
-        radius='md'
-        p='sm'
+        radius="md"
+        p="xl"
         withBorder
         style={{
-          borderLeftWidth: "5px",
-          borderBottomWidth: "0px",
+          borderWidth: "0px 0px 0px 5px",
           borderLeftColor: "tomato",
           marginBottom: "1rem",
-        }}>
+        }}
+      >
         <Title order={3}>Dashborad</Title>
       </Paper>
       <Button>Add Dashboard</Button>

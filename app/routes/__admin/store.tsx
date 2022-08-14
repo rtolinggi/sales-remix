@@ -45,6 +45,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { openConfirmModal } from "@mantine/modals";
 import { getSubCluster } from "~/controllers/cluster.server";
 import DataTable from "~/components/DataTable";
+import { ExportToExcel } from "~/components/ExportData";
 
 type LoaderProps = {
   store: Array<
@@ -56,9 +57,7 @@ type LoaderProps = {
 };
 
 const schema = Z.object({
-  storeId: Z.string({
-    required_error: "Store Id is Required",
-  }),
+  storeId: Z.string().optional(),
   subClusterId: Z.string({
     required_error: "Sub Cluster Id is Required",
   }),
@@ -87,13 +86,9 @@ interface ItemProps extends React.ComponentPropsWithoutRef<"div"> {
 export type ActionInput = Z.infer<typeof schema>;
 
 export const action: ActionFunction = async ({ request }) => {
-  await requireUserId(request);
-
   // Delete
   if (request.method === "DELETE") {
     const { storeId, action } = Object.fromEntries(await request.formData());
-    console.log("storeId : ", storeId);
-    console.log("action : ", action);
     if (
       typeof storeId === "string" &&
       typeof action === "string" &&
@@ -110,12 +105,14 @@ export const action: ActionFunction = async ({ request }) => {
     request,
     schema,
   });
-  console.log(errors);
+
+  if (errors) return json({ success: false, errors }, { status: 400 });
+
   const newFormdata = { ...formData };
 
   if (request.method === "POST" && newFormdata.action === "createStore") {
     delete newFormdata.action;
-    const result = await createStore(newFormdata as FormStore);
+    const result = await createStore(newFormdata);
     if (!result) return json({ success: false }, { status: 400 });
     return json({ success: true }, { status: 200 });
   }
@@ -167,7 +164,7 @@ export default function Store() {
     })
     .map((item) => {
       return {
-        value: JSON.stringify(item.id),
+        value: String(item.id) as string,
         label: item.subClusterName as string | undefined,
         description: item?.clusters?.clusterName,
       };
@@ -308,7 +305,6 @@ export default function Store() {
                   onClick={() => {
                     setActionUpdate(true);
                     setDataStore(idStore as Array<string>);
-                    console.log(dataStore);
                     setOpened(true);
                   }}
                 >
@@ -375,7 +371,6 @@ export default function Store() {
         onClose={() => {
           setActionUpdate(false);
           setOpened(false);
-          console.log(dataStore);
         }}
         title="Create Store"
         padding="xl"
@@ -385,7 +380,9 @@ export default function Store() {
         {/* Drawer content */}
         <Form method={actionUpdate ? "put" : "post"} onSubmit={handleSubmit}>
           <Stack spacing="sm" align="stretch">
-            <TextInput type="hidden" name="storeId" value={dataStore[1]} />
+            {actionUpdate ? (
+              <TextInput type="hidden" name="storeId" value={dataStore[1]} />
+            ) : undefined}
             <TextInput
               defaultValue={actionUpdate ? dataStore[3] : undefined}
               variant="filled"
@@ -409,8 +406,10 @@ export default function Store() {
               required
             />
             <Select
+              defaultValue={
+                actionUpdate ? (String(dataStore[2]) as string) : null
+              }
               data={selectClusterData}
-              defaultValue={actionUpdate ? "TESTING" : null}
               name="subClusterId"
               itemComponent={SelectItem}
               rightSection={<IconChevronDown size={16} />}
@@ -455,23 +454,32 @@ export default function Store() {
 
       <Paper
         radius="md"
-        p="sm"
+        p="xl"
         withBorder
         style={{
-          borderLeftWidth: "5px",
-          borderBottomWidth: "0px",
+          borderWidth: "0px 0px 0px 5px",
           borderLeftColor: "tomato",
           marginBottom: "1rem",
         }}
       >
         <Title order={3}>Store</Title>
       </Paper>
-      <Button
-        leftIcon={<IconCirclePlus size={20} />}
-        onClick={() => setOpened(true)}
-      >
-        Create Store
-      </Button>
+      <Group spacing="xs">
+        <Button
+          leftIcon={<IconCirclePlus size={20} />}
+          onClick={() => {
+            try {
+              setActionUpdate(false);
+              setOpened(true);
+            } catch (error) {
+              console.log(error);
+            }
+          }}
+        >
+          Create Store
+        </Button>
+        <ExportToExcel apiData={data} fileName="Store" />
+      </Group>
       <Paper
         shadow="sm"
         radius="md"
