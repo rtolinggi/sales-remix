@@ -13,6 +13,7 @@ import {
   Select,
   Stack,
   Table,
+  Text,
   Textarea,
   TextInput,
   ThemeIcon,
@@ -35,11 +36,9 @@ import {
 } from "@tabler/icons";
 import React, { useEffect, useRef, useState } from "react";
 import {
-  createCategory,
   createProduct,
-  deleteCategory,
   getCategory,
-  updateCategory,
+  getProduct,
 } from "~/controllers/product.server";
 import { requireUserId } from "~/utils/session.server";
 import type { categorys, suppliers } from "@prisma/client";
@@ -47,11 +46,42 @@ import { useFocusTrap } from "@mantine/hooks";
 import { getSupplier } from "~/controllers/supplier.server";
 import * as Z from "zod";
 import { validateAction } from "~/utils/validate.server";
+import DataTable from "~/components/DataTable";
+import type { ColumnDef } from "@tanstack/react-table";
+import { openConfirmModal } from "@mantine/modals";
+import { showNotification } from "@mantine/notifications";
+
+type ProductTable = {
+  productId: number;
+  categoryId: number;
+  supplierId: number;
+  productName: string;
+  price: number;
+  description: string;
+  categoryName: string;
+  supplierName: string;
+};
+
+type LoaderProduct = {
+  productId: number;
+  categoryId: number;
+  supplierId: number;
+  productName: string;
+  price: number;
+  description: string;
+  categorys: {
+    categoryName: string;
+  };
+  suppliers: {
+    supplierName: string;
+  };
+};
 
 type LoaderProps = {
   success: boolean;
   category: Array<categorys>;
   supplier: Array<suppliers>;
+  product: Array<LoaderProduct>;
   user: string;
 };
 
@@ -66,18 +96,27 @@ const schema = Z.object({
   supplierId: Z.string({
     required_error: "Supplier Id is Required",
   }),
-  price: Z.number().positive(),
+  price: Z.string(),
   description: Z.string({
     required_error: "Description is Required",
   }),
   action: Z.string().optional(),
 }).refine(
-  (data) => data.action === "insertProduct" || data.action === "updateProduct",
+  (data) =>
+    data.action === "createProduct" ||
+    data.action === "updateProduct" ||
+    data.action === "deleteProduct",
   {
     message: "Method Not Allowed",
     path: ["action"],
   }
 );
+
+const visibility = {
+  productId: false,
+  supplierId: false,
+  categoryId: false,
+};
 
 export type ActionInput = Z.infer<typeof schema>;
 
@@ -85,102 +124,51 @@ export const loader: LoaderFunction = async ({ request }) => {
   const user = await requireUserId(request);
   const category = await getCategory();
   const supplier = await getSupplier();
-  if (!user && !category) return false;
+  const product = await getProduct();
+  if (!supplier && !category) return false;
   return json(
-    { success: true, category: category, supplier: supplier, user },
+    {
+      success: true,
+      product: product,
+      category: category,
+      supplier: supplier,
+      user,
+    },
     { status: 200 }
   );
 };
 
 export const action: ActionFunction = async ({ request }) => {
-  const formDataCategory = await request.formData();
-  const categoryName = formDataCategory.get("categoryName");
-  const categoryId = formDataCategory.get("categoryId");
-  const action = formDataCategory.get("action");
-
-  if (typeof action !== "string")
-    return json({ success: false, message: "typof action" }, { status: 400 });
-  // Delete Category
-  if (request.method === "DELETE" && action === "deleteCategory") {
-    if (typeof categoryId !== "string")
-      return json({ success: false }, { status: 400 });
-    const result = await deleteCategory(JSON.parse(categoryId as string));
-    if (!result)
-      return json(
-        { success: false, message: "delete category" },
-        { status: 400 }
-      );
-    return json({ success: true }, { status: 200 });
-  }
-
-  // Post Category
-
-  if (request.method === "POST" && action === "createCategory") {
-    if (typeof categoryName !== "string")
-      return json(
-        { success: false, message: "typeof categoryname" },
-        { status: 400 }
-      );
-    const addCategory = await createCategory(categoryName as string);
-    if (!addCategory)
-      return json(
-        { success: false, message: "post category" },
-        { status: 400 }
-      );
-    return json({ success: true }, { status: 200 });
-  }
-
-  // Update Category
-  if (request.method === "PUT" && action === "updateCategory") {
-    if (typeof categoryId !== "string" && typeof categoryName !== "string")
-      return json(
-        { success: false, message: "typeof categoryId" },
-        { status: 400 }
-      );
-
-    const putCategory = await updateCategory(
-      categoryId as string,
-      categoryName as string
-    );
-    if (!putCategory)
-      return json(
-        { success: false, message: "updateCategory" },
-        { status: 400 }
-      );
-    return json({ success: true }, { status: 200 });
-  }
-
-  console.log("START PRODUCT");
-
-  // Post Product
   const { formData, errors } = await validateAction<ActionInput>({
     request,
     schema,
   });
 
-  console.log("PREPARE PRODUCT");
+  if (errors) {
+    return json({ success: false, errors }, { status: 400 });
+  }
 
-  if (errors) return json({ success: false, error: errors }, { status: 500 });
+  const newFormData = { ...formData };
 
-  console.log("FINISH");
-
-  if (request.method === "POST" && formData.action === "createProduct") {
-    console.log("CREATE PRODUCT");
-    const dataProduct = {
-      productName: formData.productName,
-      categoryId: formData.categoryId,
-      supplierId: formData.supplierId,
-      price: String(formData.price),
-      description: formData.description,
-    };
-    const insertProduct = await createProduct(dataProduct);
-    if (!insertProduct) return json({ success: false }, { status: 400 });
-    return json({ success: true }, { status: 200 });
+  // Create
+  if (request.method === "POST" && newFormData.action === "createProduct") {
+    delete newFormData.action;
+    const result = await createProduct(newFormData);
+    if (!result) {
+      return json({ success: false, errors }, { status: 400 });
+    }
+    return json(
+      {
+        success: true,
+      },
+      { status: 200 }
+    );
   }
 };
 
 export default function Product() {
-  const { category, supplier } = useLoaderData<LoaderProps>();
+  const { category, supplier, product } = useLoaderData<LoaderProps>();
+  console.log(product);
   const submit = useSubmit();
   const transition = useTransition();
   const inputCategoryRef = useRef<HTMLInputElement | null>(null);
@@ -192,7 +180,147 @@ export default function Product() {
   const [actionUpdate, setActionUpdate] = useState<boolean>(false);
   const [stateCategoryId, setStateCategoryId] = useState<string>("");
 
+  const data: Array<ProductTable> = product.map((item) => {
+    const dataTable = {
+      productId: item.productId,
+      categoryId: item.categoryId,
+      supplierId: item.supplierId,
+      productName: item.productName,
+      price: item.price,
+      description: item.description,
+      categoryName: item.categorys.categoryName,
+      supplierName: item.suppliers.supplierName,
+    };
+    return dataTable;
+  });
+
+  const columns = React.useMemo<ColumnDef<ProductTable, any>[]>(
+    () => [
+      {
+        id: "no",
+        header: "No.",
+        cell: (props) => parseInt(props.row.id) + 1,
+      },
+      {
+        id: "productId",
+        accessorKey: "productId",
+        // filterFn: "arrIncludesAll",
+      },
+      {
+        id: "categoryId",
+        accessorKey: "categoryId",
+      },
+      {
+        id: "supplierId",
+        accessorKey: "supplierId",
+      },
+      {
+        id: "productName",
+        accessorKey: "productName",
+        header: "Product Name",
+      },
+      {
+        id: "price",
+        accessorKey: "price",
+        header: "Price Rp.",
+      },
+      {
+        id: "description",
+        accessorKey: "description",
+        header: "Description",
+      },
+      {
+        id: "categoryName",
+        accessorKey: "categoryName",
+        header: "Category Name",
+      },
+      {
+        id: "supplierName",
+        accessorKey: "supplierName",
+        header: "Supplier Name",
+      },
+      {
+        id: "action",
+        header: "Actions",
+        cell: (props) => {
+          const idProduct = props.row
+            .getAllCells()
+            .map((item) => item.getValue());
+          return (
+            <Group spacing='xs'>
+              <ThemeIcon
+                color='red'
+                variant='light'
+                style={{ cursor: "pointer", marginRight: "10px" }}>
+                <UnstyledButton
+                  onClick={() =>
+                    openConfirmModal({
+                      title: "Delete Employee",
+                      centered: true,
+                      children: (
+                        <Text size='sm'>
+                          Are you sure you want to delete employee{" "}
+                          {idProduct[1] as string}?
+                        </Text>
+                      ),
+                      labels: {
+                        confirm: "Delete Employee",
+                        cancel: "No don't delete it",
+                      },
+                      onCancel: () => console.log("Cancel"),
+                      onConfirm: () => {
+                        submit(
+                          {
+                            action: "deleteEmploye",
+                            productId: idProduct[1] as string,
+                          },
+                          { method: "delete" }
+                        );
+                      },
+                    })
+                  }>
+                  <IconTrash size={20} stroke={1.5} />
+                </UnstyledButton>
+              </ThemeIcon>
+              <ThemeIcon
+                color='lime'
+                variant='light'
+                style={{ cursor: "pointer" }}>
+                <UnstyledButton
+                  type='submit'
+                  name='action'
+                  value='updateEmploye'
+                  onClick={() => {
+                    setActionUpdate(true);
+                    // setUserEmail(idEmail as Array<string>);
+                    setOpened(true);
+                  }}>
+                  <IconEdit size={20} stroke={1.5} />
+                </UnstyledButton>
+              </ThemeIcon>
+            </Group>
+          );
+        },
+      },
+    ],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
+  );
+
   useEffect(() => {
+    if (
+      transition.state === "loading" &&
+      transition.submission?.formData.get("action") === "createProduct"
+    ) {
+      showNotification({
+        id: "loadingData",
+        title: "Create Product",
+        message: "Create Product Successfully",
+        autoClose: true,
+      });
+      setActionUpdate(false);
+      setOpened(false);
+    }
     if (
       transition.state === "loading" &&
       transition.submission?.formData.get("action") === "createCategory"
@@ -221,14 +349,13 @@ export default function Product() {
     <>
       <Modal
         opened={openModal}
-        size="md"
+        size='md'
         onClose={() => {
           setStateCategoryId("");
           setActionUpdateCategory(false);
           setOpenModal(false);
         }}
-        title="Category Product"
-      >
+        title='Category Product'>
         <LoadingOverlay
           visible={
             transition.submission?.formData.get("action") ===
@@ -241,34 +368,35 @@ export default function Product() {
           }
         />
         <Divider my={15} />
-        <Stack spacing="lg" ref={focusTrapRef}>
-          <Form method={actionUpdateCategory ? "put" : "post"}>
-            <Grid align="center" columns={6} grow justify="center">
+        <Stack spacing='lg' ref={focusTrapRef}>
+          <Form
+            method={actionUpdateCategory ? "put" : "post"}
+            action='/category'>
+            <Grid align='center' columns={6} grow justify='center'>
               <Grid.Col span={4}>
                 {actionUpdateCategory ? (
                   <Input
-                    type="hidden"
-                    name="categoryId"
+                    type='hidden'
+                    name='categoryId'
                     value={stateCategoryId}
                   />
                 ) : undefined}
                 <Input
                   ref={inputCategoryRef}
-                  placeholder="Add Category"
-                  name="categoryName"
+                  placeholder='Add Category'
+                  name='categoryName'
                   data-autofocus
                   required
                 />
               </Grid.Col>
               <Grid.Col span={2}>
                 <Button
-                  type="submit"
-                  name="action"
+                  type='submit'
+                  name='action'
                   value={
                     actionUpdateCategory ? "updateCategory" : "createCategory"
                   }
-                  leftIcon={<IconCirclePlus size={20} />}
-                >
+                  leftIcon={<IconCirclePlus size={20} />}>
                   {actionUpdateCategory ? "Update" : "Insert"}
                 </Button>
               </Grid.Col>
@@ -290,12 +418,11 @@ export default function Product() {
                       <td>{index + 1}</td>
                       <td>{item.categoryName}</td>
                       <td>
-                        <Group spacing="xs">
+                        <Group spacing='xs'>
                           <ThemeIcon
-                            color="red"
-                            variant="light"
-                            style={{ cursor: "pointer", marginRight: "10px" }}
-                          >
+                            color='red'
+                            variant='light'
+                            style={{ cursor: "pointer", marginRight: "10px" }}>
                             <UnstyledButton
                               onClick={() => {
                                 submit(
@@ -303,21 +430,22 @@ export default function Product() {
                                     action: "deleteCategory",
                                     categoryId: JSON.stringify(item.categoryId),
                                   },
-                                  { method: "delete" }
+                                  {
+                                    method: "delete",
+                                    action: "/category",
+                                  }
                                 );
-                              }}
-                            >
+                              }}>
                               <IconTrash size={20} stroke={1.5} />
                             </UnstyledButton>
                           </ThemeIcon>
                           <ThemeIcon
-                            color="lime"
-                            variant="light"
-                            style={{ cursor: "pointer" }}
-                          >
+                            color='lime'
+                            variant='light'
+                            style={{ cursor: "pointer" }}>
                             <UnstyledButton
-                              name="action"
-                              value="updateStore"
+                              name='action'
+                              value='updateStore'
                               onClick={() => {
                                 setActionUpdateCategory(true);
                                 setStateCategoryId(String(item.categoryId));
@@ -326,8 +454,7 @@ export default function Product() {
                                     item.categoryName;
                                   inputCategoryRef.current.focus();
                                 }
-                              }}
-                            >
+                              }}>
                               <IconEdit size={20} stroke={1.5} />
                             </UnstyledButton>
                           </ThemeIcon>
@@ -348,8 +475,7 @@ export default function Product() {
                 if (null !== inputCategoryRef.current) {
                   inputCategoryRef.current.value = "";
                 }
-              }}
-            >
+              }}>
               Cancel Update
             </Button>
           ) : undefined}
@@ -361,27 +487,26 @@ export default function Product() {
           setActionUpdate(false);
           setOpened(false);
         }}
-        title="Products"
-        padding="xl"
-        size="xl"
-        position="right"
-      >
+        title='Products'
+        padding='xl'
+        size='xl'
+        position='right'>
         {/* Drawer content */}
         <Form method={actionUpdate ? "put" : "post"}>
-          <Stack spacing="sm" align="stretch">
+          <Stack spacing='sm' align='stretch'>
             {actionUpdate ? (
               <TextInput
-                name="productId"
+                name='productId'
                 // value={String(dataSupplier[1])}
-                type="hidden"
+                type='hidden'
               />
             ) : undefined}
             <TextInput
               // defaultValue={actionUpdate ? dataSupplier[2] : undefined}
-              variant="filled"
-              name="productName"
-              placeholder="Product Name"
-              label="Product Name"
+              variant='filled'
+              name='productName'
+              placeholder='Product Name'
+              label='Product Name'
               required
             />
             <Select
@@ -391,13 +516,13 @@ export default function Product() {
                   label: item.categoryName,
                 };
               })}
-              name="categoryId"
+              name='categoryId'
               rightSection={<IconChevronDown size={16} />}
-              variant="filled"
-              label="Category"
+              variant='filled'
+              label='Category'
               searchable
               clearable
-              placeholder="Select Category"
+              placeholder='Select Category'
               required
             />
             <Select
@@ -407,67 +532,75 @@ export default function Product() {
                   label: item.supplierName,
                 };
               })}
-              name="supplierId"
+              name='supplierId'
               rightSection={<IconChevronDown size={16} />}
-              variant="filled"
-              label="Supplier"
+              variant='filled'
+              label='Supplier'
               searchable
               clearable
-              placeholder="Select Supplier"
+              placeholder='Select Supplier'
               required
             />
             <NumberInput
-              name="price"
-              label="Price"
-              placeholder="Rp. "
+              variant='filled'
+              name='price'
+              label='Price'
+              placeholder='Rp. '
               required
             />
             <Textarea
               // defaultValue={actionUpdate ? dataSupplier[4] : undefined}
-              variant="filled"
-              name="description"
-              placeholder="Description"
-              label="description"
+              variant='filled'
+              name='description'
+              placeholder='Description'
+              label='Description'
             />
           </Stack>
           <Button
-            type="submit"
+            type='submit'
             mt={20}
-            name="action"
-            value={actionUpdate ? "updateProduct" : "createProduct"}
-          >
+            name='action'
+            value={actionUpdate ? "updateProduct" : "createProduct"}>
             {actionUpdate ? "Update" : "Insert"}
           </Button>
         </Form>
       </Drawer>
       <Paper
-        radius="md"
-        p="xl"
+        radius='md'
+        p='xl'
         withBorder
         style={{
           borderWidth: "0px 0px 0px 5px",
           borderLeftColor: "tomato",
           marginBottom: "1rem",
-        }}
-      >
+        }}>
         <Title order={3}>Product</Title>
       </Paper>
-      <Group spacing="xs">
+      <Group spacing='xs'>
         <Button
           onClick={() => setOpened(true)}
-          leftIcon={<IconCirclePlus size={20} />}
-        >
-          Add Product
+          leftIcon={<IconCirclePlus size={20} />}>
+          Create Product
         </Button>
         <Button
           onClick={() => {
             setOpenModal(true);
           }}
-          leftIcon={<IconCirclePlus size={20} />}
-        >
-          Add Category
+          leftIcon={<IconCirclePlus size={20} />}>
+          Create Category
         </Button>
       </Group>
+      <Paper
+        shadow='sm'
+        radius='md'
+        style={{
+          width: "100%",
+          padding: "20px 10px",
+          overflow: "auto",
+          marginTop: "1rem",
+        }}>
+        <DataTable data={data} columns={columns} visibility={visibility} />
+      </Paper>
     </>
   );
 }

@@ -13,6 +13,24 @@ export type FormProduct = {
 export const getProduct = async () => {
   try {
     const result = await prisma.products.findMany({
+      select: {
+        productId: true,
+        categoryId: true,
+        supplierId: true,
+        productName: true,
+        price: true,
+        description: true,
+        categorys: {
+          select: {
+            categoryName: true,
+          },
+        },
+        suppliers: {
+          select: {
+            supplierName: true,
+          },
+        },
+      },
       orderBy: {
         createdAt: "desc",
       },
@@ -33,7 +51,7 @@ export const createProduct = async (data: FormProduct) => {
     const result = await prisma.products.create({
       data: {
         categoryId: parseInt(data.categoryId),
-        supplierId: parseInt(data.categoryId),
+        supplierId: parseInt(data.supplierId),
         productName: data.productName,
         price: parseInt(data.price),
         description: data.description,

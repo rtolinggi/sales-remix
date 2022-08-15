@@ -82,6 +82,15 @@ export const login = async (form: LoginForm) => {
         { status: 400 }
       );
     }
+    if (!user.isActive) {
+      return json(
+        {
+          success: false,
+          message: "Account Not Activation, Please Contact your Adminsitrator",
+        },
+        { status: 400 }
+      );
+    }
   }
 
   return createUserSession(user.userId, "/dashboard");

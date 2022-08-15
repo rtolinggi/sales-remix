@@ -179,19 +179,18 @@ export default function Supplier() {
             .getAllCells()
             .map((item) => item.getValue());
           return (
-            <Group spacing="xs">
+            <Group spacing='xs'>
               <ThemeIcon
-                color="red"
-                variant="light"
-                style={{ cursor: "pointer", marginRight: "10px" }}
-              >
+                color='red'
+                variant='light'
+                style={{ cursor: "pointer", marginRight: "10px" }}>
                 <UnstyledButton
                   onClick={() =>
                     openConfirmModal({
                       title: "Delete Store",
                       centered: true,
                       children: (
-                        <Text size="sm">
+                        <Text size='sm'>
                           Are you sure you want to delete Store{" "}
                           {idSupplier[2] as string}?
                         </Text>
@@ -211,26 +210,23 @@ export default function Supplier() {
                         );
                       },
                     })
-                  }
-                >
+                  }>
                   <IconTrash size={20} stroke={1.5} />
                 </UnstyledButton>
               </ThemeIcon>
               <ThemeIcon
-                color="lime"
-                variant="light"
-                style={{ cursor: "pointer" }}
-              >
+                color='lime'
+                variant='light'
+                style={{ cursor: "pointer" }}>
                 <UnstyledButton
-                  type="submit"
-                  name="action"
-                  value="updateStore"
+                  type='submit'
+                  name='action'
+                  value='updateStore'
                   onClick={() => {
                     setActionUpdate(true);
                     setDataSupplier(idSupplier as Array<string>);
                     setOpened(true);
-                  }}
-                >
+                  }}>
                   <IconEdit size={20} stroke={1.5} />
                 </UnstyledButton>
               </ThemeIcon>
@@ -265,6 +261,7 @@ export default function Supplier() {
         message: "Update Supplier Successfully",
         autoClose: true,
       });
+      setActionUpdate(false);
     }
     if (
       transition.state === "loading" &&
@@ -288,90 +285,85 @@ export default function Supplier() {
           setActionUpdate(false);
           setOpened(false);
         }}
-        title="Supplier"
-        padding="xl"
-        size="xl"
-        position="right"
-      >
+        title='Supplier'
+        padding='xl'
+        size='xl'
+        position='right'>
         {/* Drawer content */}
         <Form method={actionUpdate ? "put" : "post"}>
-          <Stack spacing="sm" align="stretch">
+          <Stack spacing='sm' align='stretch'>
             {actionUpdate ? (
               <TextInput
-                name="supplierId"
+                name='supplierId'
                 value={String(dataSupplier[1])}
-                type="hidden"
+                type='hidden'
               />
             ) : undefined}
             <TextInput
               defaultValue={actionUpdate ? dataSupplier[2] : undefined}
-              variant="filled"
-              name="supplierName"
-              placeholder="Supplier Name"
-              label="Supplier Name"
+              variant='filled'
+              name='supplierName'
+              placeholder='Supplier Name'
+              label='Supplier Name'
               required
             />
             <NumberInput
               defaultValue={
                 actionUpdate ? parseInt(dataSupplier[3]) : undefined
               }
-              variant="filled"
-              name="phone"
+              variant='filled'
+              name='phone'
               hideControls
-              label="No Handphone"
-              placeholder="No Handphone"
+              label='No Handphone'
+              placeholder='No Handphone'
               required
             />
             <Textarea
               defaultValue={actionUpdate ? dataSupplier[4] : undefined}
-              variant="filled"
-              name="address"
-              placeholder="Address"
-              label="Address"
+              variant='filled'
+              name='address'
+              placeholder='Address'
+              label='Address'
               required
             />
           </Stack>
           <Button
-            type="submit"
+            type='submit'
             mt={20}
-            name="action"
-            value={actionUpdate ? "updateSupplier" : "createSupplier"}
-          >
+            name='action'
+            value={actionUpdate ? "updateSupplier" : "createSupplier"}>
             {actionUpdate ? "Update" : "Insert"}
           </Button>
         </Form>
       </Drawer>
       <Paper
-        radius="md"
-        p="xl"
+        radius='md'
+        p='xl'
         withBorder
         style={{
           borderWidth: "0px 0px 0px 5px",
           borderLeftColor: "tomato",
           marginBottom: "1rem",
-        }}
-      >
+        }}>
         <Title order={3}>Supplier</Title>
       </Paper>
-      <Group spacing="xs">
+      <Group spacing='xs'>
         <Button
           leftIcon={<IconCirclePlus size={20} />}
-          onClick={() => setOpened(true)}
-        >
-          Add Supplier
+          onClick={() => setOpened(true)}>
+          Create Supplier
         </Button>
-        <ExportToExcel apiData={data} fileName="Supplier" />
+        <ExportToExcel apiData={data} fileName='Supplier' />
       </Group>
       <Paper
-        shadow="sm"
-        radius="md"
+        shadow='sm'
+        radius='md'
         style={{
           width: "100%",
           padding: "20px 10px",
           overflow: "auto",
           marginTop: "1rem",
-        }}
-      >
+        }}>
         <DataTable data={data} columns={columns} visibility={visibility} />
       </Paper>
     </>

@@ -75,7 +75,7 @@ model products {
   price          Float            @db.Float
   description    String           @db.Text
   createdAt      DateTime         @default(now()) @map("created_at")
-  updatedAt      DateTime?        @map("updated_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
   categorys      categorys        @relation(fields: [categoryId], references: [categoryId], map: "fk_products_categorys1")
   suppliers      suppliers        @relation(fields: [supplierId], references: [supplierId], map: "fk_products_suppliers1")
   oreders_detail oreders_detail[]

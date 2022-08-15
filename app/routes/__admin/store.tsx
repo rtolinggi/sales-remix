@@ -175,8 +175,8 @@ export default function Store() {
       <div ref={ref} {...others}>
         <Group noWrap>
           <div>
-            <Text size="sm">{label}</Text>
-            <Text size="xs" color="dimmed">
+            <Text size='sm'>{label}</Text>
+            <Text size='xs' color='dimmed'>
               Cluster - {description}
             </Text>
           </div>
@@ -256,19 +256,18 @@ export default function Store() {
             .getAllCells()
             .map((item) => item.getValue());
           return (
-            <Group spacing="xs">
+            <Group spacing='xs'>
               <ThemeIcon
-                color="red"
-                variant="light"
-                style={{ cursor: "pointer", marginRight: "10px" }}
-              >
+                color='red'
+                variant='light'
+                style={{ cursor: "pointer", marginRight: "10px" }}>
                 <UnstyledButton
                   onClick={() =>
                     openConfirmModal({
                       title: "Delete Store",
                       centered: true,
                       children: (
-                        <Text size="sm">
+                        <Text size='sm'>
                           Are you sure you want to delete Store{" "}
                           {idStore[3] as string}?
                         </Text>
@@ -288,26 +287,23 @@ export default function Store() {
                         );
                       },
                     })
-                  }
-                >
+                  }>
                   <IconTrash size={20} stroke={1.5} />
                 </UnstyledButton>
               </ThemeIcon>
               <ThemeIcon
-                color="lime"
-                variant="light"
-                style={{ cursor: "pointer" }}
-              >
+                color='lime'
+                variant='light'
+                style={{ cursor: "pointer" }}>
                 <UnstyledButton
-                  type="submit"
-                  name="action"
-                  value="updateStore"
+                  type='submit'
+                  name='action'
+                  value='updateStore'
                   onClick={() => {
                     setActionUpdate(true);
                     setDataStore(idStore as Array<string>);
                     setOpened(true);
-                  }}
-                >
+                  }}>
                   <IconEdit size={20} stroke={1.5} />
                 </UnstyledButton>
               </ThemeIcon>
@@ -348,6 +344,7 @@ export default function Store() {
         message: "Delete Store Successfully",
         autoClose: true,
       });
+      setActionUpdate(false);
     }
 
     if (
@@ -372,37 +369,39 @@ export default function Store() {
           setActionUpdate(false);
           setOpened(false);
         }}
-        title="Create Store"
-        padding="xl"
-        size="xl"
-        position="right"
-      >
+        title='Store'
+        padding='xl'
+        size='xl'
+        position='right'>
         {/* Drawer content */}
         <Form method={actionUpdate ? "put" : "post"} onSubmit={handleSubmit}>
-          <Stack spacing="sm" align="stretch">
+          <Stack spacing='sm' align='stretch'>
             {actionUpdate ? (
-              <TextInput type="hidden" name="storeId" value={dataStore[1]} />
+              <TextInput type='hidden' name='storeId' value={dataStore[1]} />
             ) : undefined}
             <TextInput
               defaultValue={actionUpdate ? dataStore[3] : undefined}
-              variant="filled"
-              name="storeName"
-              label="Store Name"
+              variant='filled'
+              name='storeName'
+              label='Store Name'
+              placeholder='Store Name'
               required
             />
             <TextInput
               defaultValue={actionUpdate ? dataStore[4] : undefined}
-              variant="filled"
-              name="ownerName"
-              label="Owner Name"
+              variant='filled'
+              name='ownerName'
+              label='Owner Name'
+              placeholder='Owner Name'
               required
             />
             <NumberInput
               defaultValue={actionUpdate ? parseInt(dataStore[6]) : undefined}
-              variant="filled"
-              name="phone"
+              variant='filled'
+              name='phone'
               hideControls
-              label="No Handphone"
+              label='No Handphone'
+              placeholder='No Handphone'
               required
             />
             <Select
@@ -410,14 +409,14 @@ export default function Store() {
                 actionUpdate ? (String(dataStore[2]) as string) : null
               }
               data={selectClusterData}
-              name="subClusterId"
+              name='subClusterId'
               itemComponent={SelectItem}
               rightSection={<IconChevronDown size={16} />}
-              variant="filled"
-              label="Cluster"
+              variant='filled'
+              label='Cluster'
               searchable
               clearable
-              placeholder="Select Cluster"
+              placeholder='Select Cluster'
               filter={(value, item) => {
                 if (item.label !== undefined) {
                   const result =
@@ -434,37 +433,35 @@ export default function Store() {
             />
             <Textarea
               defaultValue={actionUpdate ? dataStore[5] : undefined}
-              variant="filled"
-              name="address"
-              placeholder="Address"
-              label="Address"
+              variant='filled'
+              name='address'
+              placeholder='Address'
+              label='Address'
               required
             />
           </Stack>
           <Button
-            type="submit"
+            type='submit'
             mt={20}
-            name="action"
-            value={actionUpdate ? "updateStore" : "createStore"}
-          >
+            name='action'
+            value={actionUpdate ? "updateStore" : "createStore"}>
             {actionUpdate ? "Update" : "Insert"}
           </Button>
         </Form>
       </Drawer>
 
       <Paper
-        radius="md"
-        p="xl"
+        radius='md'
+        p='xl'
         withBorder
         style={{
           borderWidth: "0px 0px 0px 5px",
           borderLeftColor: "tomato",
           marginBottom: "1rem",
-        }}
-      >
+        }}>
         <Title order={3}>Store</Title>
       </Paper>
-      <Group spacing="xs">
+      <Group spacing='xs'>
         <Button
           leftIcon={<IconCirclePlus size={20} />}
           onClick={() => {
@@ -474,22 +471,20 @@ export default function Store() {
             } catch (error) {
               console.log(error);
             }
-          }}
-        >
+          }}>
           Create Store
         </Button>
-        <ExportToExcel apiData={data} fileName="Store" />
+        <ExportToExcel apiData={data} fileName='Store' />
       </Group>
       <Paper
-        shadow="sm"
-        radius="md"
+        shadow='sm'
+        radius='md'
         style={{
           width: "100%",
           padding: "20px 10px",
           overflow: "auto",
           marginTop: "1rem",
-        }}
-      >
+        }}>
         <DataTable data={data} columns={columns} visibility={visibility} />
       </Paper>
     </>
