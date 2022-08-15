@@ -11,8 +11,6 @@ export type FormStore = {
   actions?: string;
 };
 
-export const getDataCluster = async () => {};
-
 export const getDataStore = async () => {
   try {
     const dataStore = await prisma.stores.findMany({
@@ -35,8 +33,7 @@ export const getDataStore = async () => {
         createdAt: "desc",
       },
     });
-    if (dataStore.length === 0)
-      return json({ success: true, message: "Data is Empty" }, { status: 200 });
+    if (!dataStore) return false;
     return dataStore;
   } catch (error) {
     console.log(error);

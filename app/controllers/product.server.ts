@@ -67,6 +67,44 @@ export const createProduct = async (data: FormProduct) => {
     );
   }
 };
+
+export const deleteProduct = async (idProduct: string) => {
+  try {
+    const deleteProductData = await prisma.products.delete({
+      where: {
+        productId: parseInt(idProduct),
+      },
+    });
+    if (!deleteProductData) return false;
+    return deleteProductData;
+  } catch (error) {
+    console.log(error);
+    json({ success: false, error }, { status: 500 });
+  }
+};
+
+export const updateProduct = async (data: FormProduct) => {
+  try {
+    const result = await prisma.products.update({
+      where: {
+        productId: parseInt(JSON.parse(data.productId as string)),
+      },
+      data: {
+        categoryId: parseInt(JSON.parse(data.categoryId)),
+        supplierId: parseInt(JSON.parse(data.categoryId)),
+        price: parseInt(JSON.parse(data.price)),
+        productName: data.productName,
+        description: data.description,
+      },
+    });
+    if (!result) return false;
+    return result;
+  } catch (error) {
+    console.log(error);
+    return json({ success: false }, { status: 500 });
+  }
+};
+
 export const getCategory = async () => {
   try {
     const result = await prisma.categorys.findMany({

@@ -37,8 +37,10 @@ import {
 import React, { useEffect, useRef, useState } from "react";
 import {
   createProduct,
+  deleteProduct,
   getCategory,
   getProduct,
+  updateProduct,
 } from "~/controllers/product.server";
 import { requireUserId } from "~/utils/session.server";
 import type { categorys, suppliers } from "@prisma/client";
@@ -139,6 +141,21 @@ export const loader: LoaderFunction = async ({ request }) => {
 };
 
 export const action: ActionFunction = async ({ request }) => {
+  // Delete
+  if (request.method === "DELETE") {
+    const { productId, action } = Object.fromEntries(await request.formData());
+    if (
+      typeof productId === "string" &&
+      typeof action === "string" &&
+      action === "deleteProduct"
+    ) {
+      const result = await deleteProduct(productId);
+      if (!result) return json({ success: false }, { status: 400 });
+      return json({ success: true }, { status: 200 });
+    }
+    return false;
+  }
+
   const { formData, errors } = await validateAction<ActionInput>({
     request,
     schema,
@@ -164,11 +181,17 @@ export const action: ActionFunction = async ({ request }) => {
       { status: 200 }
     );
   }
+
+  if (request.method === "PUT" && newFormData.action === "updateProduct") {
+    delete newFormData.action;
+    const result = await updateProduct(newFormData);
+    if (!result) return json({ success: false }, { status: 400 });
+    return json({ success: true }, { status: 200 });
+  }
 };
 
 export default function Product() {
   const { category, supplier, product } = useLoaderData<LoaderProps>();
-  console.log(product);
   const submit = useSubmit();
   const transition = useTransition();
   const inputCategoryRef = useRef<HTMLInputElement | null>(null);
@@ -179,6 +202,7 @@ export default function Product() {
     useState<boolean>(false);
   const [actionUpdate, setActionUpdate] = useState<boolean>(false);
   const [stateCategoryId, setStateCategoryId] = useState<string>("");
+  const [dataProduct, setDataProduct] = useState<Array<string>>([]);
 
   const data: Array<ProductTable> = product.map((item) => {
     const dataTable = {
@@ -204,7 +228,6 @@ export default function Product() {
       {
         id: "productId",
         accessorKey: "productId",
-        // filterFn: "arrIncludesAll",
       },
       {
         id: "categoryId",
@@ -247,54 +270,58 @@ export default function Product() {
             .getAllCells()
             .map((item) => item.getValue());
           return (
-            <Group spacing='xs'>
+            <Group spacing="xs">
               <ThemeIcon
-                color='red'
-                variant='light'
-                style={{ cursor: "pointer", marginRight: "10px" }}>
+                color="red"
+                variant="light"
+                style={{ cursor: "pointer", marginRight: "10px" }}
+              >
                 <UnstyledButton
                   onClick={() =>
                     openConfirmModal({
-                      title: "Delete Employee",
+                      title: "Delete Product",
                       centered: true,
                       children: (
-                        <Text size='sm'>
+                        <Text size="sm">
                           Are you sure you want to delete employee{" "}
-                          {idProduct[1] as string}?
+                          {idProduct[4] as string}?
                         </Text>
                       ),
                       labels: {
-                        confirm: "Delete Employee",
+                        confirm: "Delete Product",
                         cancel: "No don't delete it",
                       },
                       onCancel: () => console.log("Cancel"),
                       onConfirm: () => {
                         submit(
                           {
-                            action: "deleteEmploye",
+                            action: "deleteProduct",
                             productId: idProduct[1] as string,
                           },
                           { method: "delete" }
                         );
                       },
                     })
-                  }>
+                  }
+                >
                   <IconTrash size={20} stroke={1.5} />
                 </UnstyledButton>
               </ThemeIcon>
               <ThemeIcon
-                color='lime'
-                variant='light'
-                style={{ cursor: "pointer" }}>
+                color="lime"
+                variant="light"
+                style={{ cursor: "pointer" }}
+              >
                 <UnstyledButton
-                  type='submit'
-                  name='action'
-                  value='updateEmploye'
+                  type="submit"
+                  name="action"
+                  value="updateEmploye"
                   onClick={() => {
                     setActionUpdate(true);
-                    // setUserEmail(idEmail as Array<string>);
+                    setDataProduct(idProduct as Array<string>);
                     setOpened(true);
-                  }}>
+                  }}
+                >
                   <IconEdit size={20} stroke={1.5} />
                 </UnstyledButton>
               </ThemeIcon>
@@ -316,6 +343,32 @@ export default function Product() {
         id: "loadingData",
         title: "Create Product",
         message: "Create Product Successfully",
+        autoClose: true,
+      });
+      setActionUpdate(false);
+      setOpened(false);
+    }
+    if (
+      transition.state === "loading" &&
+      transition.submission?.formData.get("action") === "updateProduct"
+    ) {
+      showNotification({
+        id: "loadingData",
+        title: "Update Product",
+        message: "Update Product Successfully",
+        autoClose: true,
+      });
+      setActionUpdate(false);
+      setOpened(false);
+    }
+    if (
+      transition.state === "loading" &&
+      transition.submission?.formData.get("action") === "deleteProduct"
+    ) {
+      showNotification({
+        id: "loadingData",
+        title: "Delete Product",
+        message: "Delete Product Successfully",
         autoClose: true,
       });
       setActionUpdate(false);
@@ -349,13 +402,14 @@ export default function Product() {
     <>
       <Modal
         opened={openModal}
-        size='md'
+        size="md"
         onClose={() => {
           setStateCategoryId("");
           setActionUpdateCategory(false);
           setOpenModal(false);
         }}
-        title='Category Product'>
+        title="Category Product"
+      >
         <LoadingOverlay
           visible={
             transition.submission?.formData.get("action") ===
@@ -368,35 +422,37 @@ export default function Product() {
           }
         />
         <Divider my={15} />
-        <Stack spacing='lg' ref={focusTrapRef}>
+        <Stack spacing="lg" ref={focusTrapRef}>
           <Form
             method={actionUpdateCategory ? "put" : "post"}
-            action='/category'>
-            <Grid align='center' columns={6} grow justify='center'>
+            action="/category"
+          >
+            <Grid align="center" columns={6} grow justify="center">
               <Grid.Col span={4}>
                 {actionUpdateCategory ? (
                   <Input
-                    type='hidden'
-                    name='categoryId'
+                    type="hidden"
+                    name="categoryId"
                     value={stateCategoryId}
                   />
                 ) : undefined}
                 <Input
                   ref={inputCategoryRef}
-                  placeholder='Add Category'
-                  name='categoryName'
+                  placeholder="Add Category"
+                  name="categoryName"
                   data-autofocus
                   required
                 />
               </Grid.Col>
               <Grid.Col span={2}>
                 <Button
-                  type='submit'
-                  name='action'
+                  type="submit"
+                  name="action"
                   value={
                     actionUpdateCategory ? "updateCategory" : "createCategory"
                   }
-                  leftIcon={<IconCirclePlus size={20} />}>
+                  leftIcon={<IconCirclePlus size={20} />}
+                >
                   {actionUpdateCategory ? "Update" : "Insert"}
                 </Button>
               </Grid.Col>
@@ -418,11 +474,12 @@ export default function Product() {
                       <td>{index + 1}</td>
                       <td>{item.categoryName}</td>
                       <td>
-                        <Group spacing='xs'>
+                        <Group spacing="xs">
                           <ThemeIcon
-                            color='red'
-                            variant='light'
-                            style={{ cursor: "pointer", marginRight: "10px" }}>
+                            color="red"
+                            variant="light"
+                            style={{ cursor: "pointer", marginRight: "10px" }}
+                          >
                             <UnstyledButton
                               onClick={() => {
                                 submit(
@@ -435,17 +492,19 @@ export default function Product() {
                                     action: "/category",
                                   }
                                 );
-                              }}>
+                              }}
+                            >
                               <IconTrash size={20} stroke={1.5} />
                             </UnstyledButton>
                           </ThemeIcon>
                           <ThemeIcon
-                            color='lime'
-                            variant='light'
-                            style={{ cursor: "pointer" }}>
+                            color="lime"
+                            variant="light"
+                            style={{ cursor: "pointer" }}
+                          >
                             <UnstyledButton
-                              name='action'
-                              value='updateStore'
+                              name="action"
+                              value="updateStore"
                               onClick={() => {
                                 setActionUpdateCategory(true);
                                 setStateCategoryId(String(item.categoryId));
@@ -454,7 +513,8 @@ export default function Product() {
                                     item.categoryName;
                                   inputCategoryRef.current.focus();
                                 }
-                              }}>
+                              }}
+                            >
                               <IconEdit size={20} stroke={1.5} />
                             </UnstyledButton>
                           </ThemeIcon>
@@ -475,7 +535,8 @@ export default function Product() {
                 if (null !== inputCategoryRef.current) {
                   inputCategoryRef.current.value = "";
                 }
-              }}>
+              }}
+            >
               Cancel Update
             </Button>
           ) : undefined}
@@ -487,118 +548,127 @@ export default function Product() {
           setActionUpdate(false);
           setOpened(false);
         }}
-        title='Products'
-        padding='xl'
-        size='xl'
-        position='right'>
+        title="Products"
+        padding="xl"
+        size="xl"
+        position="right"
+      >
         {/* Drawer content */}
         <Form method={actionUpdate ? "put" : "post"}>
-          <Stack spacing='sm' align='stretch'>
+          <Stack spacing="sm" align="stretch">
             {actionUpdate ? (
               <TextInput
-                name='productId'
-                // value={String(dataSupplier[1])}
-                type='hidden'
+                name="productId"
+                value={String(dataProduct[1])}
+                type="hidden"
               />
             ) : undefined}
             <TextInput
-              // defaultValue={actionUpdate ? dataSupplier[2] : undefined}
-              variant='filled'
-              name='productName'
-              placeholder='Product Name'
-              label='Product Name'
+              defaultValue={actionUpdate ? dataProduct[4] : undefined}
+              variant="filled"
+              name="productName"
+              placeholder="Product Name"
+              label="Product Name"
               required
             />
             <Select
+              defaultValue={actionUpdate ? String(dataProduct[2]) : undefined}
               data={category.map((item) => {
                 return {
                   value: String(item.categoryId),
                   label: item.categoryName,
                 };
               })}
-              name='categoryId'
+              name="categoryId"
               rightSection={<IconChevronDown size={16} />}
-              variant='filled'
-              label='Category'
+              variant="filled"
+              label="Category"
               searchable
               clearable
-              placeholder='Select Category'
+              placeholder="Select Category"
               required
             />
             <Select
+              defaultValue={actionUpdate ? String(dataProduct[3]) : undefined}
               data={supplier.map((item) => {
                 return {
                   value: String(item.supplierId),
                   label: item.supplierName,
                 };
               })}
-              name='supplierId'
+              name="supplierId"
               rightSection={<IconChevronDown size={16} />}
-              variant='filled'
-              label='Supplier'
+              variant="filled"
+              label="Supplier"
               searchable
               clearable
-              placeholder='Select Supplier'
+              placeholder="Select Supplier"
               required
             />
             <NumberInput
-              variant='filled'
-              name='price'
-              label='Price'
-              placeholder='Rp. '
+              defaultValue={actionUpdate ? parseInt(dataProduct[5]) : undefined}
+              variant="filled"
+              name="price"
+              label="Price"
+              placeholder="Rp. "
               required
             />
             <Textarea
-              // defaultValue={actionUpdate ? dataSupplier[4] : undefined}
-              variant='filled'
-              name='description'
-              placeholder='Description'
-              label='Description'
+              defaultValue={actionUpdate ? dataProduct[6] : undefined}
+              variant="filled"
+              name="description"
+              placeholder="Description"
+              label="Description"
             />
           </Stack>
           <Button
-            type='submit'
+            type="submit"
             mt={20}
-            name='action'
-            value={actionUpdate ? "updateProduct" : "createProduct"}>
+            name="action"
+            value={actionUpdate ? "updateProduct" : "createProduct"}
+          >
             {actionUpdate ? "Update" : "Insert"}
           </Button>
         </Form>
       </Drawer>
       <Paper
-        radius='md'
-        p='xl'
+        radius="md"
+        p="xl"
         withBorder
         style={{
           borderWidth: "0px 0px 0px 5px",
           borderLeftColor: "tomato",
           marginBottom: "1rem",
-        }}>
+        }}
+      >
         <Title order={3}>Product</Title>
       </Paper>
-      <Group spacing='xs'>
+      <Group spacing="xs">
         <Button
           onClick={() => setOpened(true)}
-          leftIcon={<IconCirclePlus size={20} />}>
+          leftIcon={<IconCirclePlus size={20} />}
+        >
           Create Product
         </Button>
         <Button
           onClick={() => {
             setOpenModal(true);
           }}
-          leftIcon={<IconCirclePlus size={20} />}>
+          leftIcon={<IconCirclePlus size={20} />}
+        >
           Create Category
         </Button>
       </Group>
       <Paper
-        shadow='sm'
-        radius='md'
+        shadow="sm"
+        radius="md"
         style={{
           width: "100%",
           padding: "20px 10px",
           overflow: "auto",
           marginTop: "1rem",
-        }}>
+        }}
+      >
         <DataTable data={data} columns={columns} visibility={visibility} />
       </Paper>
     </>
