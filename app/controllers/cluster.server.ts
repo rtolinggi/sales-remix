@@ -6,13 +6,44 @@ type PropsSubCluster = {
   subClusterName: string;
 };
 
+export const deleteSubCluster = async (id: string) => {
+  try {
+    const result = await prisma.sub_clusters.delete({
+      where: {
+        id: parseInt(id),
+      },
+    });
+    if (!result) return false;
+    return result;
+  } catch (error) {
+    console.log(error);
+    return json(
+      { success: false, error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+};
+
 export const createSubCluster = async (data: PropsSubCluster) => {
   try {
-    const insertSubCluster = await prisma.sub_clusters.create({
+    const result = await prisma.sub_clusters.create({
       data,
     });
-    if (insertSubCluster) return true;
-    return false;
+    if (!result) return false;
+    return result;
+  } catch (error) {
+    console.log(error);
+    return json({ error: "Internal server error" }, { status: 500 });
+  }
+};
+
+export const updateSubCluster = async (data: PropsSubCluster) => {
+  try {
+    const result = await prisma.sub_clusters.create({
+      data,
+    });
+    if (!result) return false;
+    return result;
   } catch (error) {
     console.log(error);
     return json({ error: "Internal server error" }, { status: 500 });
@@ -34,9 +65,30 @@ export const createCluster = async (name: string) => {
   }
 };
 
+export const updateCluster = async (id: string, name: string) => {
+  try {
+    const result = await prisma.clusters.update({
+      where: {
+        clusterId: parseInt(String(id)),
+      },
+      data: {
+        clusterName: name,
+      },
+    });
+    if (!result) return json({ success: false }, { status: 400 });
+    return result;
+  } catch (error) {
+    console.log(error);
+    return json(
+      { success: false, error: "Internal Server Error" },
+      { status: 200 }
+    );
+  }
+};
+
 export const getSubCluster = async () => {
   try {
-    const _subCluster = await prisma.sub_clusters.findMany({
+    const subCluster = await prisma.sub_clusters.findMany({
       select: {
         clusterId: true,
         id: true,
@@ -48,20 +100,10 @@ export const getSubCluster = async () => {
         },
       },
       orderBy: {
-        clusterId: "desc",
+        id: "desc",
       },
     });
-    if (!_subCluster) return false;
-    const subCluster = _subCluster.map((item) => {
-      return {
-        id: JSON.stringify(item.id),
-        clusterId: JSON.stringify(item.clusterId),
-        subClusterName: item.subClusterName,
-        clusters: {
-          clusterName: item.clusters.clusterName,
-        },
-      };
-    });
+    if (!subCluster) return false;
     return subCluster;
   } catch (error) {
     console.log(error);
@@ -72,9 +114,6 @@ export const getSubCluster = async () => {
 export const getCluster = async () => {
   try {
     const cluster = await prisma.clusters.findMany({
-      include: {
-        sub_clusters: true,
-      },
       orderBy: {
         clusterId: "desc",
       },
@@ -94,8 +133,8 @@ export const deleteCluster = async (id: string) => {
         clusterId: parseInt(id),
       },
     });
-    if (deleteData) return true;
-    return false;
+    if (!deleteData) return false;
+    return true;
   } catch (error) {
     console.log(error);
     return json(

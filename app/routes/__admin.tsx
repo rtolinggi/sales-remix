@@ -58,6 +58,15 @@ export default function AppShellDemo() {
           transition.submission?.formData.get("action") !== "deleteCategory" &&
           transition.submission?.formData.get("action") !== "createCategory" &&
           transition.submission?.formData.get("action") !== "updateCategory" &&
+          transition.submission?.formData.get("action") !== "createCluster" &&
+          transition.submission?.formData.get("action") !== "deleteCluster" &&
+          transition.submission?.formData.get("action") !== "updateCluster" &&
+          transition.submission?.formData.get("action") !==
+            "createSubCluster" &&
+          transition.submission?.formData.get("action") !==
+            "deleteSubCluster" &&
+          transition.submission?.formData.get("action") !==
+            "updateSubCluster" &&
           transition.state === "submitting"
             ? true
             : false

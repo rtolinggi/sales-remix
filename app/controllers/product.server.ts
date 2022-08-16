@@ -90,9 +90,9 @@ export const updateProduct = async (data: FormProduct) => {
         productId: parseInt(JSON.parse(data.productId as string)),
       },
       data: {
-        categoryId: parseInt(JSON.parse(data.categoryId)),
-        supplierId: parseInt(JSON.parse(data.categoryId)),
-        price: parseInt(JSON.parse(data.price)),
+        categoryId: parseInt(JSON.parse(data.categoryId as string)),
+        supplierId: parseInt(JSON.parse(data.supplierId as string)),
+        price: parseInt(JSON.parse(data.price as string)),
         productName: data.productName,
         description: data.description,
       },

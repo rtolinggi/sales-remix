@@ -584,7 +584,7 @@ export default function Employee() {
         }}>
         <Title order={3}>Employee</Title>
       </Paper>
-      <Group spacing='xs'>
+      <Group>
         <Button
           onClick={() => {
             setActionUpdate(false);
