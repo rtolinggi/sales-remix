@@ -71,7 +71,11 @@ export const action: ActionFunction = async ({ request }) => {
   }
 
   if (request.method === "PUT" && formData.action === "updateSubCluster") {
-    const result = await updateSubCluster(data);
+    const result = await updateSubCluster({
+      id: parseInt(JSON.parse(formData.id as string)),
+      clusterId: parseInt(JSON.parse(formData.clusterId)),
+      subClusterName: formData.subClusterName,
+    });
     if (!result) return json({ success: false }, { status: 400 });
     return json({ success: true }, { status: 200 });
   }

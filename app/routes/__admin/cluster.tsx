@@ -39,7 +39,7 @@ import {
 import type { clusters } from "@prisma/client";
 import * as Z from "zod";
 import { validateAction } from "~/utils/validate.server";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type SubCluster = {
   id: string;
@@ -110,7 +110,7 @@ export const action: ActionFunction = async ({ request }) => {
     );
   }
 
-  if (request.method === "PUT" && newFormData.action === "updateProduct") {
+  if (request.method === "PUT" && newFormData.action === "updateCluster") {
     delete newFormData.action;
     const result = await updateCluster(
       String(newFormData.clusterId),
@@ -134,6 +134,12 @@ export default function Cluster() {
   const transition = useTransition();
   const inputClusterRef = useRef<HTMLInputElement | null>(null);
   const inputSubClusterRef = useRef<HTMLInputElement | null>(null);
+  const [actionUpdateCluster, setActionUpdateCluster] =
+    useState<boolean>(false);
+  const [actionUpdateSubCluster, setActionUpdateSubCluster] =
+    useState<boolean>(false);
+  const [stateClusterId, setStateClusterId] = useState<string>("");
+  const [stateSubClusterId, setStateSubClusterId] = useState<string>("");
 
   const loadingCluster = transition.state === "submitting";
 
@@ -144,11 +150,25 @@ export default function Cluster() {
         inputClusterRef.current.focus();
       }
     }
+    if (transition.submission?.formData.get("action") === "updateCluster") {
+      if (null !== inputClusterRef.current) {
+        inputClusterRef.current.value = "";
+        inputClusterRef.current.focus();
+      }
+      setActionUpdateCluster(false);
+    }
     if (transition.submission?.formData.get("action") === "createSubCluster") {
       if (null !== inputSubClusterRef.current) {
         inputSubClusterRef.current.value = "";
         inputSubClusterRef.current.focus();
       }
+    }
+    if (transition.submission?.formData.get("action") === "updateSubCluster") {
+      if (null !== inputSubClusterRef.current) {
+        inputSubClusterRef.current.value = "";
+        inputSubClusterRef.current.focus();
+      }
+      setActionUpdateSubCluster(false);
     }
   }, [transition]);
   return (
@@ -178,7 +198,7 @@ export default function Cluster() {
 
           <Tabs.Panel value="gallery" p="xl">
             <Box style={{ width: "350px" }}>
-              <Form method="post">
+              <Form method={actionUpdateCluster ? "put" : "post"}>
                 <Group grow>
                   <TextInput
                     variant="filled"
@@ -189,16 +209,37 @@ export default function Cluster() {
                     required
                   />
                 </Group>
+                <TextInput
+                  type="hidden"
+                  name="clusterId"
+                  value={stateClusterId}
+                />
+
                 <Group my={20}>
                   <Button
                     loading={loadingCluster}
                     type="submit"
                     name="action"
-                    value="createCluster"
+                    value={
+                      actionUpdateCluster ? "updateCluster" : "createCluster"
+                    }
                     leftIcon={<IconCirclePlus size={20} />}
                   >
-                    Create Cluster
+                    {actionUpdateCluster ? "Update Cluster" : "Create Cluster"}
                   </Button>
+                  {actionUpdateCluster ? (
+                    <Button
+                      onClick={() => {
+                        setActionUpdateCluster(false);
+                        if (null !== inputClusterRef.current) {
+                          inputClusterRef.current.value = "";
+                          inputClusterRef.current.focus();
+                        }
+                      }}
+                    >
+                      Cancel Update
+                    </Button>
+                  ) : undefined}
                 </Group>
               </Form>
             </Box>
@@ -248,13 +289,13 @@ export default function Cluster() {
                               name="action"
                               value="updateCluster"
                               onClick={() => {
-                                // setActionUpdateCategory(true);
-                                // setStateCategoryId(String(item.categoryId));
-                                // if (null !== inputCategoryRef.current) {
-                                //   inputCategoryRef.current.value =
-                                //     item.categoryName;
-                                //   inputCategoryRef.current.focus();
-                                // }
+                                setActionUpdateCluster(true);
+                                setStateClusterId(String(item.clusterId));
+                                if (null !== inputClusterRef.current) {
+                                  inputClusterRef.current.value =
+                                    item.clusterName;
+                                  inputClusterRef.current.focus();
+                                }
                               }}
                             >
                               <IconEdit size={20} stroke={1.5} />
@@ -271,9 +312,13 @@ export default function Cluster() {
 
           <Tabs.Panel value="messages" p="xl">
             <Box style={{ width: "350px" }}>
-              <Form method="post" action="/subCluster">
+              <Form
+                method={actionUpdateSubCluster ? "put" : "post"}
+                action="/subCluster"
+              >
                 <Select
                   name="clusterId"
+                  defaultValue={stateClusterId}
                   data={cluster.map((item) => {
                     return {
                       value: String(item.clusterId),
@@ -288,6 +333,7 @@ export default function Cluster() {
                   placeholder="Select Cluster"
                   required
                 />
+                <TextInput type="hidden" name="id" value={stateSubClusterId} />
                 <Group grow>
                   <TextInput
                     ref={inputSubClusterRef}
@@ -303,11 +349,30 @@ export default function Cluster() {
                     loading={loadingCluster}
                     type="submit"
                     name="action"
-                    value="createSubCluster"
+                    value={
+                      actionUpdateSubCluster
+                        ? "updateSubCluster"
+                        : "createSubCluster"
+                    }
                     leftIcon={<IconCirclePlus size={20} />}
                   >
-                    Create Cluster
+                    {actionUpdateSubCluster
+                      ? "Update Sub Cluster"
+                      : "Create Sub Cluster"}
                   </Button>
+                  {actionUpdateSubCluster ? (
+                    <Button
+                      onClick={() => {
+                        setActionUpdateSubCluster(false);
+                        if (null !== inputSubClusterRef.current) {
+                          inputSubClusterRef.current.value = "";
+                          inputSubClusterRef.current.focus();
+                        }
+                      }}
+                    >
+                      Cancel Update
+                    </Button>
+                  ) : undefined}
                 </Group>
               </Form>
             </Box>
@@ -368,13 +433,13 @@ export default function Cluster() {
                               name="action"
                               value="updateSubCluster"
                               onClick={() => {
-                                // setActionUpdateCategory(true);
-                                // setStateCategoryId(String(item.categoryId));
-                                // if (null !== inputCategoryRef.current) {
-                                //   inputCategoryRef.current.value =
-                                //     item.categoryName;
-                                //   inputCategoryRef.current.focus();
-                                // }
+                                setActionUpdateSubCluster(true);
+                                setStateSubClusterId(String(item.id));
+                                if (null !== inputSubClusterRef.current) {
+                                  inputSubClusterRef.current.value =
+                                    item.subClusterName;
+                                  inputSubClusterRef.current.focus();
+                                }
                               }}
                             >
                               <IconEdit size={20} stroke={1.5} />

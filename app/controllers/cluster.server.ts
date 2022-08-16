@@ -2,6 +2,7 @@ import { prisma } from "../utils/prisma.server";
 import { json } from "@remix-run/node";
 
 type PropsSubCluster = {
+  id?: number;
   clusterId: number;
   subClusterName: string;
 };
