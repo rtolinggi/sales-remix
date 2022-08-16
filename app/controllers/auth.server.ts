@@ -133,5 +133,13 @@ export const verifiedEmail = async (token: string) => {
     });
   }
 
+  const getEmploye = await prisma.employees.findFirst({
+    where: {
+      userId: idEmail.userId,
+    },
+  });
+
+  if (!getEmploye) return redirect("/login");
+
   return createUserSession(verified.userId, "/dashboard");
 };

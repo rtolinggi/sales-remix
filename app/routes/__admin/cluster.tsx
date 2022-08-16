@@ -154,53 +154,55 @@ export default function Cluster() {
   return (
     <>
       <Paper
-        radius='md'
-        p='xl'
+        radius="md"
+        p="xl"
         withBorder
         style={{
           borderWidth: "0px 0px 0px 5px",
           borderLeftColor: "tomato",
           marginBottom: "1rem",
-        }}>
+        }}
+      >
         <Title order={3}>Cluster</Title>
       </Paper>
       <Paper>
-        <Tabs defaultValue='gallery'>
+        <Tabs defaultValue="gallery">
           <Tabs.List>
-            <Tabs.Tab value='gallery' icon={<IconPhoto size={20} />}>
+            <Tabs.Tab value="gallery" icon={<IconPhoto size={20} />}>
               Cluster
             </Tabs.Tab>
-            <Tabs.Tab value='messages' icon={<IconMessageCircle size={20} />}>
+            <Tabs.Tab value="messages" icon={<IconMessageCircle size={20} />}>
               Sub Cluster
             </Tabs.Tab>
           </Tabs.List>
 
-          <Tabs.Panel value='gallery' p='xl'>
+          <Tabs.Panel value="gallery" p="xl">
             <Box style={{ width: "350px" }}>
-              <Form method='post'>
+              <Form method="post">
                 <Group grow>
                   <TextInput
-                    variant='filled'
+                    variant="filled"
                     ref={inputClusterRef}
-                    label='Cluster'
-                    placeholder='Cluster'
-                    name='clusterName'
+                    label="Cluster"
+                    placeholder="Cluster"
+                    name="clusterName"
                     required
                   />
                 </Group>
                 <Group my={20}>
                   <Button
                     loading={loadingCluster}
-                    type='submit'
-                    name='action'
-                    value='createCluster'
-                    leftIcon={<IconCirclePlus size={20} />}>
+                    type="submit"
+                    name="action"
+                    value="createCluster"
+                    leftIcon={<IconCirclePlus size={20} />}
+                  >
                     Create Cluster
                   </Button>
                 </Group>
               </Form>
             </Box>
-            <Table striped highlightOnHover>
+            <Table verticalSpacing="md" striped highlightOnHover>
               <thead>
                 <tr>
                   <th>No.</th>
@@ -215,11 +217,12 @@ export default function Cluster() {
                       <td>{index + 1}</td>
                       <td>{item.clusterName}</td>
                       <td>
-                        <Group spacing='xs'>
+                        <Group spacing="xs">
                           <ThemeIcon
-                            color='red'
-                            variant='light'
-                            style={{ cursor: "pointer", marginRight: "10px" }}>
+                            color="red"
+                            variant="light"
+                            style={{ cursor: "pointer", marginRight: "10px" }}
+                          >
                             <UnstyledButton
                               onClick={() => {
                                 submit(
@@ -231,17 +234,19 @@ export default function Cluster() {
                                     method: "delete",
                                   }
                                 );
-                              }}>
+                              }}
+                            >
                               <IconTrash size={20} stroke={1.5} />
                             </UnstyledButton>
                           </ThemeIcon>
                           <ThemeIcon
-                            color='lime'
-                            variant='light'
-                            style={{ cursor: "pointer" }}>
+                            color="lime"
+                            variant="light"
+                            style={{ cursor: "pointer" }}
+                          >
                             <UnstyledButton
-                              name='action'
-                              value='updateCluster'
+                              name="action"
+                              value="updateCluster"
                               onClick={() => {
                                 // setActionUpdateCategory(true);
                                 // setStateCategoryId(String(item.categoryId));
@@ -250,7 +255,8 @@ export default function Cluster() {
                                 //     item.categoryName;
                                 //   inputCategoryRef.current.focus();
                                 // }
-                              }}>
+                              }}
+                            >
                               <IconEdit size={20} stroke={1.5} />
                             </UnstyledButton>
                           </ThemeIcon>
@@ -263,11 +269,11 @@ export default function Cluster() {
             </Table>
           </Tabs.Panel>
 
-          <Tabs.Panel value='messages' p='xl'>
+          <Tabs.Panel value="messages" p="xl">
             <Box style={{ width: "350px" }}>
-              <Form method='post' action='/subCluster'>
+              <Form method="post" action="/subCluster">
                 <Select
-                  name='clusterId'
+                  name="clusterId"
                   data={cluster.map((item) => {
                     return {
                       value: String(item.clusterId),
@@ -275,37 +281,38 @@ export default function Cluster() {
                     };
                   })}
                   rightSection={<IconChevronDown size={16} />}
-                  variant='filled'
-                  label='Cluster'
+                  variant="filled"
+                  label="Cluster"
                   searchable
                   clearable
-                  placeholder='Select Cluster'
+                  placeholder="Select Cluster"
                   required
                 />
                 <Group grow>
                   <TextInput
                     ref={inputSubClusterRef}
-                    variant='filled'
-                    label='Sub Cluster'
-                    placeholder='Sub Cluster'
-                    name='subClusterName'
+                    variant="filled"
+                    label="Sub Cluster"
+                    placeholder="Sub Cluster"
+                    name="subClusterName"
                     required
                   />
                 </Group>
                 <Group my={20}>
                   <Button
                     loading={loadingCluster}
-                    type='submit'
-                    name='action'
-                    value='createSubCluster'
-                    leftIcon={<IconCirclePlus size={20} />}>
+                    type="submit"
+                    name="action"
+                    value="createSubCluster"
+                    leftIcon={<IconCirclePlus size={20} />}
+                  >
                     Create Cluster
                   </Button>
                 </Group>
               </Form>
             </Box>
 
-            <Table striped highlightOnHover>
+            <Table verticalSpacing="md" striped highlightOnHover>
               <thead>
                 <tr>
                   <th>No.</th>
@@ -329,11 +336,12 @@ export default function Cluster() {
                       <td>{item.subClusterName}</td>
                       <td>{item.clusters.clusterName}</td>
                       <td>
-                        <Group spacing='xs'>
+                        <Group spacing="xs">
                           <ThemeIcon
-                            color='red'
-                            variant='light'
-                            style={{ cursor: "pointer", marginRight: "10px" }}>
+                            color="red"
+                            variant="light"
+                            style={{ cursor: "pointer", marginRight: "10px" }}
+                          >
                             <UnstyledButton
                               onClick={() => {
                                 submit(
@@ -346,17 +354,19 @@ export default function Cluster() {
                                     action: "/subCluster",
                                   }
                                 );
-                              }}>
+                              }}
+                            >
                               <IconTrash size={20} stroke={1.5} />
                             </UnstyledButton>
                           </ThemeIcon>
                           <ThemeIcon
-                            color='lime'
-                            variant='light'
-                            style={{ cursor: "pointer" }}>
+                            color="lime"
+                            variant="light"
+                            style={{ cursor: "pointer" }}
+                          >
                             <UnstyledButton
-                              name='action'
-                              value='updateSubCluster'
+                              name="action"
+                              value="updateSubCluster"
                               onClick={() => {
                                 // setActionUpdateCategory(true);
                                 // setStateCategoryId(String(item.categoryId));
@@ -365,7 +375,8 @@ export default function Cluster() {
                                 //     item.categoryName;
                                 //   inputCategoryRef.current.focus();
                                 // }
-                              }}>
+                              }}
+                            >
                               <IconEdit size={20} stroke={1.5} />
                             </UnstyledButton>
                           </ThemeIcon>
