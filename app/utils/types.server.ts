@@ -31,13 +31,17 @@ export type StoreTable = {
   ownerName: string | null;
   address: string;
   phone: string;
-  subClusterId: number | null;
+  subClusterId: string | undefined;
   subClusterName: string | null | undefined;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type SupplierTable = {
-  supplierId: number;
+  supplierId: string;
   supplierName: string;
   phone: string;
   address: string;
+  createdAt: string;
+  updatedAt: string;
 };

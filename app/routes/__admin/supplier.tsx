@@ -128,16 +128,21 @@ export default function Supplier() {
   const submit = useSubmit();
   const [actionUpdate, setActionUpdate] = useState<boolean>(false);
   const [dataSupplier, setDataSupplier] = useState<Array<string>>([]);
+
   const visibility = {
     supplierId: false,
+    createdAt: false,
+    updatedAt: false,
   };
 
   const data: Array<SupplierTable> = supplier.map((item) => {
     const dataTable = {
-      supplierId: item.supplierId,
+      supplierId: String(item.supplierId),
       supplierName: item.supplierName,
       phone: item.phone,
       address: item.address,
+      createdAt: JSON.stringify(String(item.createdAt)),
+      updatedAt: JSON.stringify(String(item.updatedAt)),
     };
     return dataTable;
   });
@@ -169,6 +174,14 @@ export default function Supplier() {
         id: "address",
         header: "Address",
         accessorKey: "address",
+      },
+      {
+        id: "createdAt",
+        accessorKey: "createdAtate",
+      },
+      {
+        id: "updatedAt",
+        accessorKey: "updatedAt",
       },
       {
         id: "action",

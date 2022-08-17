@@ -188,17 +188,21 @@ export default function Store() {
   const visibility = {
     storeId: false,
     subClusterId: false,
+    createdAt: false,
+    updatedAt: false,
   };
 
   const data: Array<StoreTable> = store.map((item) => {
     const dataTable = {
-      storeId: item.storeId,
+      storeId: String(item.storeId),
       storeName: item.storeName,
       ownerName: item.ownerName,
       phone: item.phone,
       address: item.address,
-      subClusterId: item.subClusterId,
+      subClusterId: item.subClusterId?.toString(),
       subClusterName: item.subClusters?.subClusterName,
+      createdAt: JSON.stringify(String(item.createdAt)),
+      updatedAt: JSON.stringify(String(item.updatedAt)),
     };
     return dataTable;
   });
@@ -247,6 +251,14 @@ export default function Store() {
         accessorKey: "subClusterName",
         header: "Sub Cluster",
         filterFn: "arrIncludesAll",
+      },
+      {
+        id: "createdAt",
+        accessorKey: "createdAt",
+      },
+      {
+        id: "updatedAt",
+        accessorKey: "updatedAt",
       },
       {
         id: "action",
