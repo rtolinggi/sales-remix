@@ -2,16 +2,18 @@
 import {
   IconChevronRight,
   IconUserCheck,
-  IconDashboard,
   IconBuildingWarehouse,
   IconBrandAppgallery,
+  IconLayoutDashboard,
+  IconListDetails,
+  IconReceipt,
 } from "@tabler/icons";
 import { Link, useLocation } from "@remix-run/react";
 import { Box, NavLink, ThemeIcon } from "@mantine/core";
 
 const data = [
   {
-    icon: IconDashboard,
+    icon: IconLayoutDashboard,
     label: "Dashboard",
     to: "dashboard",
     pathName: "/dashboard",
@@ -51,6 +53,20 @@ const data = [
     to: "product",
     pathName: "/product",
     color: "teal",
+  },
+  {
+    icon: IconReceipt,
+    label: "Order",
+    to: "order",
+    pathName: "/order",
+    color: "violet",
+  },
+  {
+    icon: IconListDetails,
+    label: "Task",
+    to: "task",
+    pathName: "/task",
+    color: "yellow",
   },
   {
     icon: IconUserCheck,

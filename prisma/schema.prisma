@@ -44,7 +44,7 @@ model employees {
 }
 
 model orders {
-  orderId        Int              @id @default(autoincrement())
+  orderId        String           @id
   storeId        String           @db.VarChar(45) @map("store_id")
   employeeId     String           @db.VarChar(45) @map("employee_id")
   orderDate      DateTime         @default(now()) @map("order_date")
@@ -58,9 +58,10 @@ model orders {
 }
 
 model oreders_detail {
-  orderId    Int @map("order_id")
+  orderId    String @map("order_id")
   productId  Int @map("product_id")
   quantity   Int
+  status     status_order @default(PENDING)
   orders     orders   @relation(fields: [orderId], references: [orderId], map: "fk_oreders_detail_orders1")
   products   products @relation(fields: [productId], references: [productId], map: "fk_oreders_detail_products1")
 
@@ -181,4 +182,10 @@ enum Role {
   SUPERADMIN
   ADMIN
   USER
+}
+
+enum status_order {
+  APPROVE
+  REJECT
+  PENDING
 }

@@ -42,7 +42,13 @@ type UserProps = {
 
 export const loader: LoaderFunction = async ({ request }) => {
   const user = await getUser(request);
-  return user ? json({ data: user }) : redirect("login");
+  if (
+    user?.employees?.jobTitle === "Sales" ||
+    user?.employees?.jobTitle === "SPG"
+  ) {
+    return redirect("sales");
+  }
+  return json({ success: true, data: user }, { status: 200 });
 };
 
 export default function AppShellDemo() {

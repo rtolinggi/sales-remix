@@ -2,6 +2,7 @@ import {
   Button,
   Drawer,
   Group,
+  LoadingOverlay,
   NumberInput,
   Paper,
   Stack,
@@ -295,6 +296,7 @@ export default function Supplier() {
   }, [transition]);
   return (
     <>
+      <LoadingOverlay visible={transition.state === "loading"} />
       <Drawer
         opened={opened}
         onClose={() => {

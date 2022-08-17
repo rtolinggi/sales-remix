@@ -17,7 +17,7 @@ import {
   getFilteredRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { IconArrowDown, IconArrowUp, IconSearch } from "@tabler/icons";
+import { IconArrowsDown, IconArrowsUp, IconSearch } from "@tabler/icons";
 
 type Props = {
   data: Array<{}>;
@@ -98,15 +98,15 @@ const DataTable: React.FC<Props> = ({ columns, data, visibility }) => {
                       )}
                       {{
                         asc: (
-                          <IconArrowUp
+                          <IconArrowsUp
                             size={16}
-                            style={{ marginLeft: "5px" }}
+                            style={{ marginLeft: "5px", marginTop: "5px" }}
                           />
                         ),
                         desc: (
-                          <IconArrowDown
+                          <IconArrowsDown
                             size={16}
-                            style={{ marginLeft: "5px" }}
+                            style={{ marginLeft: "5px", marginTop: "5px" }}
                           />
                         ),
                       }[header.column.getIsSorted() as string] ?? null}

@@ -415,6 +415,7 @@ export default function Product() {
 
   return (
     <>
+      <LoadingOverlay visible={transition.state === "loading"} />
       <Modal
         opened={openModal}
         size="md"

@@ -25,8 +25,8 @@ import {
   IconChevronDown,
   IconCirclePlus,
   IconEdit,
-  IconMessageCircle,
-  IconPhoto,
+  IconFolder,
+  IconFolders,
   IconTrash,
 } from "@tabler/icons";
 import {
@@ -173,6 +173,7 @@ export default function Cluster() {
   }, [transition]);
   return (
     <>
+      <LoadingOverlay visible={transition.state === "loading"} />
       <Paper
         radius="md"
         p="xl"
@@ -188,10 +189,16 @@ export default function Cluster() {
       <Paper>
         <Tabs defaultValue="gallery">
           <Tabs.List>
-            <Tabs.Tab value="gallery" icon={<IconPhoto size={20} />}>
+            <Tabs.Tab
+              value="gallery"
+              icon={<IconFolder size={20} color="red" />}
+            >
               Cluster
             </Tabs.Tab>
-            <Tabs.Tab value="messages" icon={<IconMessageCircle size={20} />}>
+            <Tabs.Tab
+              value="messages"
+              icon={<IconFolders size={20} color="red" />}
+            >
               Sub Cluster
             </Tabs.Tab>
           </Tabs.List>
@@ -318,7 +325,6 @@ export default function Cluster() {
               >
                 <Select
                   name="clusterId"
-                  defaultValue={stateClusterId}
                   data={cluster.map((item) => {
                     return {
                       value: String(item.clusterId),

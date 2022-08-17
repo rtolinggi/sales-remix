@@ -2,6 +2,7 @@ import {
   Button,
   Drawer,
   Group,
+  LoadingOverlay,
   NumberInput,
   Paper,
   Select,
@@ -379,6 +380,7 @@ export default function Store() {
 
   return (
     <>
+      <LoadingOverlay visible={transition.state === "loading"} />
       <Drawer
         opened={opened}
         onClose={() => {

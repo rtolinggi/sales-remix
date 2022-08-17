@@ -40,7 +40,10 @@ export const createSubCluster = async (data: PropsSubCluster) => {
 
 export const updateSubCluster = async (data: PropsSubCluster) => {
   try {
-    const result = await prisma.sub_clusters.create({
+    const result = await prisma.sub_clusters.update({
+      where: {
+        id: data.id,
+      },
       data,
     });
     if (!result) return false;

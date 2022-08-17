@@ -3,13 +3,14 @@ import { json } from "@remix-run/node";
 import type { LoaderFunction } from "@remix-run/node";
 import { requireUserId } from "~/utils/session.server";
 import { useTransition } from "@remix-run/react";
+import { IconCirclePlus } from "@tabler/icons";
 
 export const loader: LoaderFunction = async ({ request }) => {
   const user = await requireUserId(request);
   return json({ user: user }, { status: 200 });
 };
 
-const DashboardPage = () => {
+export default function Order() {
   const transition = useTransition();
   return (
     <>
@@ -24,11 +25,9 @@ const DashboardPage = () => {
           marginBottom: "1rem",
         }}
       >
-        <Title order={3}>Dashborad</Title>
+        <Title order={3}>Order</Title>
       </Paper>
-      <Button>Add Dashboard</Button>
+      <Button leftIcon={<IconCirclePlus size={20} />}>Add Order</Button>
     </>
   );
-};
-
-export default DashboardPage;
+}
