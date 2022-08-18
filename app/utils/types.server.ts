@@ -45,3 +45,14 @@ export type SupplierTable = {
   createdAt: string;
   updatedAt: string;
 };
+
+export type OrderTable = {
+  orderId: string;
+  orderDate: string;
+  storeId: string;
+  employeeId: string;
+  total: string;
+  storeName: string;
+  firstName: string;
+  lastName: string;
+};
