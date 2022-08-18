@@ -88,11 +88,10 @@ const NabarContent: React.FC = () => {
       label={item.label}
       rightSection={item.rightSection}
       icon={
-        <ThemeIcon color={item.color} variant="light">
+        <ThemeIcon color={item.color} variant='light'>
           <item.icon size={16} stroke={1.5} />
         </ThemeIcon>
-      }
-    >
+      }>
       {item.subLink
         ? item.subLink.map((index) => (
             <NavLink

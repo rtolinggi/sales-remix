@@ -123,6 +123,8 @@ const visibility = {
   productId: false,
   supplierId: false,
   categoryId: false,
+  createdAt: false,
+  updatedAt: false,
 };
 
 export type ActionInput = Z.infer<typeof schema>;
@@ -285,19 +287,18 @@ export default function Product() {
             .getAllCells()
             .map((item) => item.getValue());
           return (
-            <Group spacing="xs">
+            <Group spacing='xs'>
               <ThemeIcon
-                color="red"
-                variant="light"
-                style={{ cursor: "pointer", marginRight: "10px" }}
-              >
+                color='red'
+                variant='light'
+                style={{ cursor: "pointer", marginRight: "10px" }}>
                 <UnstyledButton
                   onClick={() =>
                     openConfirmModal({
                       title: "Delete Product",
                       centered: true,
                       children: (
-                        <Text size="sm">
+                        <Text size='sm'>
                           Are you sure you want to delete employee{" "}
                           {idProduct[4] as string}?
                         </Text>
@@ -317,26 +318,23 @@ export default function Product() {
                         );
                       },
                     })
-                  }
-                >
+                  }>
                   <IconTrash size={20} stroke={1.5} />
                 </UnstyledButton>
               </ThemeIcon>
               <ThemeIcon
-                color="lime"
-                variant="light"
-                style={{ cursor: "pointer" }}
-              >
+                color='lime'
+                variant='light'
+                style={{ cursor: "pointer" }}>
                 <UnstyledButton
-                  type="submit"
-                  name="action"
-                  value="updateEmploye"
+                  type='submit'
+                  name='action'
+                  value='updateEmploye'
                   onClick={() => {
                     setActionUpdate(true);
                     setDataProduct(idProduct as Array<string>);
                     setOpened(true);
-                  }}
-                >
+                  }}>
                   <IconEdit size={20} stroke={1.5} />
                 </UnstyledButton>
               </ThemeIcon>
@@ -418,14 +416,13 @@ export default function Product() {
       <LoadingOverlay visible={transition.state === "loading"} />
       <Modal
         opened={openModal}
-        size="md"
+        size='md'
         onClose={() => {
           setStateCategoryId("");
           setActionUpdateCategory(false);
           setOpenModal(false);
         }}
-        title="Category Product"
-      >
+        title='Category Product'>
         <LoadingOverlay
           visible={
             transition.submission?.formData.get("action") ===
@@ -438,37 +435,35 @@ export default function Product() {
           }
         />
         <Divider my={15} />
-        <Stack spacing="lg" ref={focusTrapRef}>
+        <Stack spacing='lg' ref={focusTrapRef}>
           <Form
             method={actionUpdateCategory ? "put" : "post"}
-            action="/category"
-          >
-            <Grid align="center" columns={6} grow justify="center">
+            action='/category'>
+            <Grid align='center' columns={6} grow justify='center'>
               <Grid.Col span={4}>
                 {actionUpdateCategory ? (
                   <Input
-                    type="hidden"
-                    name="categoryId"
+                    type='hidden'
+                    name='categoryId'
                     value={stateCategoryId}
                   />
                 ) : undefined}
                 <Input
                   ref={inputCategoryRef}
-                  placeholder="Add Category"
-                  name="categoryName"
+                  placeholder='Add Category'
+                  name='categoryName'
                   data-autofocus
                   required
                 />
               </Grid.Col>
               <Grid.Col span={2}>
                 <Button
-                  type="submit"
-                  name="action"
+                  type='submit'
+                  name='action'
                   value={
                     actionUpdateCategory ? "updateCategory" : "createCategory"
                   }
-                  leftIcon={<IconCirclePlus size={20} />}
-                >
+                  leftIcon={<IconCirclePlus size={20} />}>
                   {actionUpdateCategory ? "Update" : "Insert"}
                 </Button>
               </Grid.Col>
@@ -490,12 +485,11 @@ export default function Product() {
                       <td>{index + 1}</td>
                       <td>{item.categoryName}</td>
                       <td>
-                        <Group spacing="xs">
+                        <Group spacing='xs'>
                           <ThemeIcon
-                            color="red"
-                            variant="light"
-                            style={{ cursor: "pointer", marginRight: "10px" }}
-                          >
+                            color='red'
+                            variant='light'
+                            style={{ cursor: "pointer", marginRight: "10px" }}>
                             <UnstyledButton
                               onClick={() => {
                                 submit(
@@ -508,19 +502,17 @@ export default function Product() {
                                     action: "/category",
                                   }
                                 );
-                              }}
-                            >
+                              }}>
                               <IconTrash size={20} stroke={1.5} />
                             </UnstyledButton>
                           </ThemeIcon>
                           <ThemeIcon
-                            color="lime"
-                            variant="light"
-                            style={{ cursor: "pointer" }}
-                          >
+                            color='lime'
+                            variant='light'
+                            style={{ cursor: "pointer" }}>
                             <UnstyledButton
-                              name="action"
-                              value="updateStore"
+                              name='action'
+                              value='updateStore'
                               onClick={() => {
                                 setActionUpdateCategory(true);
                                 setStateCategoryId(String(item.categoryId));
@@ -529,8 +521,7 @@ export default function Product() {
                                     item.categoryName;
                                   inputCategoryRef.current.focus();
                                 }
-                              }}
-                            >
+                              }}>
                               <IconEdit size={20} stroke={1.5} />
                             </UnstyledButton>
                           </ThemeIcon>
@@ -551,8 +542,7 @@ export default function Product() {
                 if (null !== inputCategoryRef.current) {
                   inputCategoryRef.current.value = "";
                 }
-              }}
-            >
+              }}>
               Cancel Update
             </Button>
           ) : undefined}
@@ -564,27 +554,26 @@ export default function Product() {
           setActionUpdate(false);
           setOpened(false);
         }}
-        title="Products"
-        padding="xl"
-        size="xl"
-        position="right"
-      >
+        title='Products'
+        padding='xl'
+        size='xl'
+        position='right'>
         {/* Drawer content */}
         <Form method={actionUpdate ? "put" : "post"}>
-          <Stack spacing="sm" align="stretch">
+          <Stack spacing='sm' align='stretch'>
             {actionUpdate ? (
               <TextInput
-                name="productId"
+                name='productId'
                 value={String(dataProduct[1])}
-                type="hidden"
+                type='hidden'
               />
             ) : undefined}
             <TextInput
               defaultValue={actionUpdate ? dataProduct[4] : undefined}
-              variant="filled"
-              name="productName"
-              placeholder="Product Name"
-              label="Product Name"
+              variant='filled'
+              name='productName'
+              placeholder='Product Name'
+              label='Product Name'
               required
             />
             <Select
@@ -595,13 +584,13 @@ export default function Product() {
                   label: item.categoryName,
                 };
               })}
-              name="categoryId"
+              name='categoryId'
               rightSection={<IconChevronDown size={16} />}
-              variant="filled"
-              label="Category"
+              variant='filled'
+              label='Category'
               searchable
               clearable
-              placeholder="Select Category"
+              placeholder='Select Category'
               required
             />
             <Select
@@ -612,85 +601,80 @@ export default function Product() {
                   label: item.supplierName,
                 };
               })}
-              name="supplierId"
+              name='supplierId'
               rightSection={<IconChevronDown size={16} />}
-              variant="filled"
-              label="Supplier"
+              variant='filled'
+              label='Supplier'
               searchable
               clearable
-              placeholder="Select Supplier"
+              placeholder='Select Supplier'
               required
             />
             <NumberInput
               defaultValue={actionUpdate ? parseInt(dataProduct[5]) : undefined}
-              variant="filled"
-              name="price"
-              label="Price"
-              placeholder="Rp. "
+              variant='filled'
+              name='price'
+              label='Price'
+              placeholder='Rp. '
               required
             />
             <Textarea
               defaultValue={actionUpdate ? dataProduct[6] : undefined}
-              variant="filled"
-              name="description"
-              placeholder="Description"
-              label="Description"
+              variant='filled'
+              name='description'
+              placeholder='Description'
+              label='Description'
             />
           </Stack>
           <Button
-            type="submit"
+            type='submit'
             mt={20}
-            name="action"
-            value={actionUpdate ? "updateProduct" : "createProduct"}
-          >
+            name='action'
+            value={actionUpdate ? "updateProduct" : "createProduct"}>
             {actionUpdate ? "Update" : "Insert"}
           </Button>
         </Form>
       </Drawer>
       <Paper
-        radius="md"
-        p="xl"
+        radius='md'
+        p='xl'
         withBorder
         style={{
           borderWidth: "0px 0px 0px 5px",
           borderLeftColor: "tomato",
           marginBottom: "1rem",
-        }}
-      >
+        }}>
         <Title order={3}>Product</Title>
       </Paper>
-      <Group position="apart" mx={10}>
-        <Group spacing="xs">
+      <Group position='apart' mx={10}>
+        <Group spacing='xs'>
           <Button
             onClick={() => setOpened(true)}
-            leftIcon={<IconCirclePlus size={20} />}
-          >
+            leftIcon={<IconCirclePlus size={20} />}>
             Create Product
           </Button>
           <Button
             onClick={() => {
               setOpenModal(true);
             }}
-            leftIcon={<IconCirclePlus size={20} />}
-          >
+            leftIcon={<IconCirclePlus size={20} />}>
             Create Category
           </Button>
         </Group>
-        <Group position="right">
+        <Group position='right'>
           <ExportToExcel apiData={data} fileName={"product"} />
         </Group>
       </Group>
 
       <Paper
-        shadow="sm"
-        radius="md"
+        shadow='sm'
+        radius='md'
         style={{
           width: "100%",
           padding: "20px 10px",
           overflow: "auto",
           marginTop: "1rem",
-        }}
-      >
+        }}>
         <DataTable data={data} columns={columns} visibility={visibility} />
       </Paper>
     </>
