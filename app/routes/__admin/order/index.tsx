@@ -100,6 +100,7 @@ export default function Order() {
       },
       {
         id: "orderId",
+        header: "Order Id",
         accessorKey: "orderId",
       },
       {
@@ -160,41 +161,42 @@ export default function Order() {
     <>
       <LoadingOverlay visible={transition.state === "loading"} />
       <Paper
-        radius='md'
-        p='xl'
+        radius="md"
+        p="xl"
         withBorder
         style={{
           borderWidth: "0px 0px 0px 5px",
           borderLeftColor: "tomato",
           marginBottom: "1rem",
-        }}>
+        }}
+      >
         <Title order={3}>Order</Title>
       </Paper>
-      <Paper radius='md' p='md' shadow='sm'>
-        <Group position='apart' grow>
+      <Paper radius="md" p="md" shadow="sm">
+        <Group position="apart" grow>
           <DatePicker
-            variant='filled'
-            name='dateForm'
-            locale='id'
-            placeholder='Date From'
+            variant="filled"
+            name="dateForm"
+            locale="id"
+            placeholder="Date From"
             icon={<IconCalendar size={16} />}
-            label='Date From'
+            label="Date From"
             allowFreeInput
-            inputFormat='YYYY-MM-DD'
+            inputFormat="YYYY-MM-DD"
           />
           <DatePicker
-            variant='filled'
-            name='dateTo'
-            locale='id'
-            placeholder='Date To'
+            variant="filled"
+            name="dateTo"
+            locale="id"
+            placeholder="Date To"
             icon={<IconCalendar size={16} />}
-            label='Date To'
+            label="Date To"
             allowFreeInput
-            inputFormat='YYYY-MM-DD'
+            inputFormat="YYYY-MM-DD"
           />
         </Group>
       </Paper>
-      <Paper mt={20} radius='md' p='md' shadow='sm'>
+      <Paper mt={20} radius="md" p="md" shadow="sm">
         <DataTable data={data} columns={columns} visibility={visibility} />
       </Paper>
     </>

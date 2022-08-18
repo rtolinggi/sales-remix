@@ -1,5 +1,6 @@
 import { json } from "@remix-run/node";
 import { prisma } from "~/utils/prisma.server";
+import type { Order } from "../routes/__admin/order/$orderId";
 
 export type FormOrder = {
   orderId: string;
@@ -20,6 +21,7 @@ export const getOrderId = async (id: string) => {
         orderId: id,
       },
       select: {
+        orderId: true,
         employees: {
           select: {
             firstName: true,
@@ -65,67 +67,20 @@ export const getOrderId = async (id: string) => {
       };
     });
 
-    const order = {
+    const order: Order = {
+      orderId: resultOrder?.orderId,
       sales: `${resultOrder?.employees.firstName} ${resultOrder?.employees.lastName}`,
       storeName: resultOrder?.stores.storeName,
       storePhone: resultOrder?.stores.phone,
       storeAddress: resultOrder?.stores.address,
-      grandTotal: resultOrder.total,
+      grandTotal: resultOrder.total?.toString() as string,
     };
 
-    return { dataOrder: { order, detail } };
+    return { order, detail };
   } catch (error) {
     console.log(error);
     return json(
       { success: false, message: "Inernal Server Error" },
-      { status: 500 }
-    );
-  }
-};
-
-export const getDetailOrder = async (id: string) => {
-  try {
-    const result = await prisma.oreders_detail.findMany({
-      where: {
-        orderId: id,
-      },
-      select: {
-        orderId: true,
-        orders: {
-          select: {
-            employees: {
-              select: {
-                firstName: true,
-                lastName: true,
-              },
-            },
-            orderDate: true,
-            stores: {
-              select: {
-                storeName: true,
-                phone: true,
-                ownerName: true,
-                subClusters: {
-                  select: {
-                    clusters: true,
-                  },
-                },
-              },
-            },
-            total: true,
-          },
-        },
-        quantity: true,
-        status: true,
-      },
-    });
-    if (!result) return false;
-    console.log(result);
-    return result;
-  } catch (error) {
-    console.log(error);
-    return json(
-      { success: false, message: "Internal server Error" },
       { status: 500 }
     );
   }
