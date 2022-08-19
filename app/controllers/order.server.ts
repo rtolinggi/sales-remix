@@ -1,6 +1,5 @@
 import { json } from "@remix-run/node";
 import { prisma } from "~/utils/prisma.server";
-import type { Order } from "../routes/__admin/order/$orderId";
 
 export type FormOrder = {
   orderId: string;
@@ -38,7 +37,29 @@ export const getOrderId = async (id: string) => {
         total: true,
       },
     });
+    if (!resultOrder) return null;
 
+    const order = {
+      orderId: resultOrder?.orderId,
+      sales: `${resultOrder?.employees.firstName} ${resultOrder?.employees.lastName}`,
+      storeName: resultOrder?.stores.storeName,
+      storePhone: resultOrder?.stores.phone,
+      storeAddress: resultOrder?.stores.address,
+      grandTotal: resultOrder.total?.toString() as string,
+    };
+
+    return order;
+  } catch (error) {
+    console.log(error);
+    return json(
+      { success: false, message: "Internal Server Error" },
+      { status: 500 }
+    );
+  }
+};
+
+export const getOrderDetailId = async (id: string) => {
+  try {
     const resultDetailOrder = await prisma.oreders_detail.findMany({
       where: {
         orderId: id,
@@ -54,35 +75,22 @@ export const getOrderId = async (id: string) => {
         },
       },
     });
-
-    if (!resultOrder || !resultDetailOrder) return null;
+    if (!resultDetailOrder) return null;
 
     const detail = resultDetailOrder.map((item) => {
       return {
         productName: item.products.productName,
-        quantity: item.quantity,
-        status: item.status,
-        price: item.products.price,
-        total: item.products.price * item.quantity,
+        quantity: item.quantity.toString(),
+        status: String(item.status),
+        price: item.products.price.toString(),
+        total: (item.products.price * item.quantity).toString(),
       };
     });
 
-    const order: Order = {
-      orderId: resultOrder?.orderId,
-      sales: `${resultOrder?.employees.firstName} ${resultOrder?.employees.lastName}`,
-      storeName: resultOrder?.stores.storeName,
-      storePhone: resultOrder?.stores.phone,
-      storeAddress: resultOrder?.stores.address,
-      grandTotal: resultOrder.total?.toString() as string,
-    };
-
-    return { order, detail };
+    return detail;
   } catch (error) {
     console.log(error);
-    return json(
-      { success: false, message: "Inernal Server Error" },
-      { status: 500 }
-    );
+    return json({ success: false }, { status: 500 });
   }
 };
 
