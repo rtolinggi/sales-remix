@@ -1,5 +1,6 @@
 import { json } from "@remix-run/node";
 import { prisma } from "~/utils/prisma.server";
+import type { status_order } from "@prisma/client";
 
 export type FormOrder = {
   orderId: string;
@@ -71,6 +72,7 @@ export const getOrderDetailId = async (id: string) => {
           select: {
             productName: true,
             price: true,
+            productId: true,
           },
         },
       },
@@ -79,6 +81,7 @@ export const getOrderDetailId = async (id: string) => {
 
     const detail = resultDetailOrder.map((item) => {
       return {
+        productId: item.products.productId.toString(),
         productName: item.products.productName,
         quantity: item.quantity.toString(),
         status: String(item.status),
@@ -122,6 +125,35 @@ export const getOrder = async () => {
     console.log(error);
     return json(
       { success: false, error: "Internal server Error" },
+      { status: 500 }
+    );
+  }
+};
+
+export const updateStatusOrderItem = async (data: {
+  orderId: string;
+  productId: string;
+  status: status_order;
+}) => {
+  try {
+    const result = await prisma.oreders_detail.update({
+      where: {
+        orderId_productId: {
+          orderId: data.orderId,
+          productId: Number(data.productId),
+        },
+      },
+      data: {
+        status: data.status,
+      },
+    });
+
+    if (!result) return false;
+    return result;
+  } catch (error) {
+    console.log(error);
+    return json(
+      { success: false, error: "Internal Server Error" },
       { status: 500 }
     );
   }

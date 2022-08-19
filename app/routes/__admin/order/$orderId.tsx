@@ -1,10 +1,36 @@
-import { Box, Divider, Grid, Paper, Table, Text, Title } from "@mantine/core";
-import type { LoaderFunction } from "@remix-run/node";
+import {
+  Badge,
+  Box,
+  Divider,
+  Grid,
+  LoadingOverlay,
+  Menu,
+  Paper,
+  Table,
+  Text,
+  Title,
+  UnstyledButton,
+} from "@mantine/core";
+import type { ActionFunction, LoaderFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
-import { getOrderDetailId, getOrderId } from "~/controllers/order.server";
-import { useLoaderData } from "@remix-run/react";
+import {
+  getOrderDetailId,
+  getOrderId,
+  updateStatusOrderItem,
+} from "~/controllers/order.server";
+import { useLoaderData, useSubmit, useTransition } from "@remix-run/react";
+import {
+  IconChecks,
+  IconDotsVertical,
+  IconPaperclip,
+  IconX,
+} from "@tabler/icons";
+import * as Z from "zod";
+import { validateAction } from "~/utils/validate.server";
+import type { status_order } from "@prisma/client";
 
 export type Detail = {
+  productId: string;
   price: string;
   productName: string;
   quantity: string;
@@ -27,6 +53,40 @@ export type LoaderProps = {
   detail: Array<Detail>;
 };
 
+const schema = Z.object({
+  orderId: Z.string(),
+  productId: Z.string(),
+  status: Z.enum(["PENDING", "CONFIRM", "CANCEL"]),
+  action: Z.string().optional(),
+}).refine((data) => data.action === "updateStatus", {
+  message: "Methon Not Allowed",
+  path: ["action"],
+});
+
+export type ActionInput = Z.infer<typeof schema>;
+
+export const action: ActionFunction = async ({ request }) => {
+  const { formData, errors } = await validateAction<ActionInput>({
+    request,
+    schema,
+  });
+
+  if (errors) return json({ success: false, errors }, { status: 400 });
+
+  const { ...newFormData } = formData;
+  if (newFormData.action === "updateStatus" && request.method === "PUT") {
+    delete newFormData.action;
+    const changeStatus = await updateStatusOrderItem({
+      orderId: newFormData.orderId,
+      productId: newFormData.productId,
+      status: newFormData.status as status_order,
+    });
+
+    if (!changeStatus) return json({ success: false }, { status: 400 });
+    return json({ success: true }, { status: 200 });
+  }
+};
+
 export const loader: LoaderFunction = async ({ params }) => {
   const data = params.orderId;
   if (!data) return json({ success: false }, { status: 400 });
@@ -40,6 +100,8 @@ export const loader: LoaderFunction = async ({ params }) => {
 
 export default function OrderDetail() {
   const { order, detail } = useLoaderData<LoaderProps>();
+  const submit = useSubmit();
+  const transition = useTransition();
 
   let sumQuantity: number = detail.reduce(
     (curr, val) => curr + Number(val.quantity),
@@ -62,7 +124,7 @@ export default function OrderDetail() {
           borderLeftColor: "tomato",
           marginBottom: "1rem",
         }}>
-        <Title order={3}>Order ID : {order.orderId}</Title>
+        <Title order={3}>ORDER ID - {order.orderId}</Title>
       </Paper>
       <Paper
         shadow='sm'
@@ -113,6 +175,7 @@ export default function OrderDetail() {
           marginTop: "1rem",
         }}>
         <Table verticalSpacing='md' striped highlightOnHover>
+          <LoadingOverlay visible={transition.state === "submitting"} />
           <thead>
             <tr>
               <th>No .</th>
@@ -121,6 +184,7 @@ export default function OrderDetail() {
               <th>Price</th>
               <th>Total</th>
               <th>Status</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody>
@@ -131,7 +195,60 @@ export default function OrderDetail() {
                 <td>{item.quantity}</td>
                 <td>{formatRupiah(item.price, "Rp. ")}</td>
                 <td>{formatRupiah(item.total, "Rp. ")}</td>
-                <td>{item.status}</td>
+                <td>
+                  {item.status === "PENDING" ? (
+                    <Badge
+                      variant='gradient'
+                      gradient={{ from: "orange", to: "red" }}>
+                      PENDING
+                    </Badge>
+                  ) : item.status === "CONFIRM" ? (
+                    <Badge
+                      variant='gradient'
+                      gradient={{ from: "teal", to: "lime", deg: 105 }}>
+                      CONFIRM
+                    </Badge>
+                  ) : item.status === "CANCEL" ? (
+                    <Badge
+                      variant='gradient'
+                      gradient={{ from: "#ed6ea0", to: "#ec8c69", deg: 35 }}>
+                      CANCEL
+                    </Badge>
+                  ) : null}
+                </td>
+                <td>
+                  <Menu position='right' withArrow>
+                    <Menu.Target>
+                      <UnstyledButton>
+                        <IconDotsVertical size={20} />
+                      </UnstyledButton>
+                    </Menu.Target>
+                    <Menu.Dropdown>
+                      <Menu.Item
+                        onClick={() =>
+                          submit(
+                            {
+                              orderId: order.orderId,
+                              productId: item.productId,
+                              status: "CONFIRM",
+                              action: "updateStatus",
+                            },
+                            { method: "put" }
+                          )
+                        }
+                        icon={<IconChecks size={16} color='green' />}>
+                        Confirm
+                      </Menu.Item>
+                      <Menu.Item icon={<IconX size={16} color='red' />}>
+                        Cancel
+                      </Menu.Item>
+                      <Menu.Item
+                        icon={<IconPaperclip size={16} color='orange' />}>
+                        Pending
+                      </Menu.Item>
+                    </Menu.Dropdown>
+                  </Menu>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -190,7 +307,6 @@ function formatRupiah(angka: string, prefix: string) {
     rupiah = split[0].substr(0, sisa),
     ribuan = split[0].substr(sisa).match(/\d{3}/gi);
 
-  // tambahkan titik jika yang di input sudah menjadi angka ribuan
   if (ribuan) {
     let separator: string;
     separator = sisa ? "." : "";

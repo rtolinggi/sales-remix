@@ -185,7 +185,7 @@ enum Role {
 }
 
 enum status_order {
-  APPROVE
-  REJECT
+  CONFIRM
+  CANCEL
   PENDING
 }
