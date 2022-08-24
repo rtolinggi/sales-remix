@@ -1,10 +1,10 @@
-import { Button, Group, LoadingOverlay, Paper, Title } from "@mantine/core";
+import { Box, Button, LoadingOverlay, Paper, Title } from "@mantine/core";
 import { json } from "@remix-run/node";
 import type { LoaderFunction } from "@remix-run/node";
 import { requireUserId } from "~/utils/session.server";
 import { Link, useLoaderData, useTransition } from "@remix-run/react";
 import { DatePicker } from "@mantine/dates";
-import { IconCalendar, IconEyeCheck } from "@tabler/icons";
+import { IconCalendar, IconEyeCheck, IconFilter } from "@tabler/icons";
 import { getOrder } from "~/controllers/order.server";
 import * as Z from "zod";
 import React from "react";
@@ -161,46 +161,58 @@ export default function Order() {
     <>
       <LoadingOverlay visible={transition.state === "loading"} />
       <Paper
-        radius='md'
-        p='xl'
+        radius="md"
+        p="xl"
         withBorder
         style={{
           borderWidth: "0px 0px 0px 5px",
           borderLeftColor: "tomato",
           marginBottom: "1rem",
-        }}>
+        }}
+      >
         <Title order={3}>Order</Title>
       </Paper>
-      <Paper radius='md' p='md' shadow='sm'>
-        <Group position='apart' grow>
+      <Paper radius="md" p="md" shadow="sm">
+        <Box
+          style={{
+            display: "flex",
+            justifyContent: "left",
+            alignItems: "end",
+          }}
+        >
           <DatePicker
-            variant='filled'
-            name='dateForm'
-            locale='id'
-            placeholder='Date From'
+            variant="filled"
+            name="dateForm"
+            locale="id"
+            placeholder="Date From"
             icon={<IconCalendar size={16} />}
-            label='Date From'
+            label="Date From"
             allowFreeInput
-            inputFormat='YYYY-MM-DD'
+            inputFormat="YYYY-MM-DD"
           />
           <DatePicker
-            variant='filled'
-            name='dateTo'
-            locale='id'
-            placeholder='Date To'
+            variant="filled"
+            name="dateTo"
+            locale="id"
+            placeholder="Date To"
             icon={<IconCalendar size={16} />}
-            label='Date To'
+            label="Date To"
             allowFreeInput
-            inputFormat='YYYY-MM-DD'
+            inputFormat="YYYY-MM-DD"
+            ml={10}
           />
-        </Group>
+          <Button ml={10} leftIcon={<IconFilter size={20} color="white" />}>
+            Filter
+          </Button>
+        </Box>
       </Paper>
       <Paper
         mt={20}
-        radius='md'
-        p='md'
-        shadow='sm'
-        style={{ overflow: "auto" }}>
+        radius="md"
+        p="md"
+        shadow="sm"
+        style={{ overflow: "auto" }}
+      >
         <DataTable data={data} columns={columns} visibility={visibility} />
       </Paper>
     </>

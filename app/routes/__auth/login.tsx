@@ -19,7 +19,7 @@ import { Form, Link, useActionData, useTransition } from "@remix-run/react";
 import { json } from "@remix-run/node";
 import type { ActionFunction } from "@remix-run/node";
 import type { RegisterForm } from "~/utils/types.server";
-import { login, register } from "~/controllers/auth.server";
+import { authLogin, register } from "~/controllers/auth.server";
 import { showNotification } from "@mantine/notifications";
 import {
   validateConfirmPassword,
@@ -92,7 +92,7 @@ export const action: ActionFunction = async ({ request }) => {
 
   switch (action) {
     case "login": {
-      return await login({ email, passwordHash });
+      return await authLogin({ email, passwordHash });
     }
     case "register": {
       confirmPassword = confirmPassword as string;
@@ -192,9 +192,9 @@ const Login = () => {
   return (
     <Paper
       withBorder
-      shadow='md'
+      shadow="md"
       p={30}
-      radius='md'
+      radius="md"
       sx={(theme) => ({
         background:
           theme.colorScheme === "dark"
@@ -203,82 +203,85 @@ const Login = () => {
         backdropFilter: "blur(8px)",
         minWidth: "320px",
         margin: "auto",
-      })}>
+      })}
+    >
       <LoadingOverlay visible={visible} />
       <Center>
-        <Image src={logoN} alt='logo' width={100} />
+        <Image src={logoN} alt="logo" width={100} />
       </Center>
       <Center>
-        <Title align='left' order={2}>
+        <Title align="left" order={2}>
           {action === "login" ? "Sign in" : "Sign up"}
         </Title>
       </Center>
-      <Space h='md' />
-      <Form method='post'>
+      <Space h="md" />
+      <Form method="post">
         <TextInput
-          name='email'
-          label='Email'
-          placeholder='Your email'
-          autoComplete='email'
+          name="email"
+          label="Email"
+          placeholder="Your email"
+          autoComplete="email"
           value={formData.email}
           onChange={(e) => handleChangeInput(e, "email")}
           error={fieldErrors?.email}
           required
         />
         <PasswordInput
-          name='passwordHash'
-          label='Password'
-          placeholder='Your password'
-          autoComplete='password'
+          name="passwordHash"
+          label="Password"
+          placeholder="Your password"
+          autoComplete="password"
           value={formData.passwordHash}
           onChange={(e) => handleChangeInput(e, "passwordHash")}
           error={fieldErrors?.passwordHash}
           required
-          mt='md'
+          mt="md"
         />
         {action !== "login" ? (
           <PasswordInput
-            name='confirmPassword'
-            label='Confirm Password'
-            placeholder='Repeat password'
-            autoComplete='password'
+            name="confirmPassword"
+            label="Confirm Password"
+            placeholder="Repeat password"
+            autoComplete="password"
             value={formData.confirmPassword}
             onChange={(e) => handleChangeInput(e, "confirmPassword")}
             error={fieldErrors?.confirmPassword}
             required
-            mt='md'
+            mt="md"
           />
         ) : null}
         {action === "login" ? (
-          <Group position='apart' mt='md'>
-            <Checkbox label='Remember me' />
-            <Anchor component={Link} to='#' size='sm'>
+          <Group position="apart" mt="md">
+            <Checkbox label="Remember me" />
+            <Anchor component={Link} to="#" size="sm">
               Forgot password?
             </Anchor>
           </Group>
         ) : null}
         <Button
           fullWidth
-          mt='xl'
-          name='_action'
+          mt="xl"
+          name="_action"
           value={action}
-          type='submit'
-          loading={trasition.state === "submitting"}>
+          type="submit"
+          loading={trasition.state === "submitting"}
+        >
           {action === "login" ? "Sign in" : "Sign up"}
         </Button>
         <Divider
-          my='xs'
+          my="xs"
           label={
             action === "login"
               ? "Dont have an account?"
               : "Already have an account?"
           }
-          labelPosition='center'
+          labelPosition="center"
         />
         <Button
           onClick={() => handleActionChange()}
-          variant='outline'
-          fullWidth>
+          variant="outline"
+          fullWidth
+        >
           {action === "login" ? "Sign up" : "Sign in"}
         </Button>
       </Form>

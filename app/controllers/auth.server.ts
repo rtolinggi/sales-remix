@@ -54,7 +54,14 @@ export const register = async (form: RegisterForm) => {
   );
 };
 
-export const login = async (form: LoginForm) => {
+export const authLogin = async (form: LoginForm) => {
+  const result = await login(form);
+  if (result.status !== 200) return result;
+  console.log(result.data.userId);
+  return createUserSession(result.data.userId, "/dashboard");
+};
+
+export const login = async (form: LoginForm): Promise<any> => {
   const user = await prisma.users.findUnique({
     where: {
       email: form.email,
@@ -91,6 +98,7 @@ export const login = async (form: LoginForm) => {
         { status: 400 }
       );
     }
+    return user;
   }
 
   return createUserSession(user.userId, "/dashboard");

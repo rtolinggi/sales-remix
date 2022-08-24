@@ -130,6 +130,24 @@ export const getOrder = async () => {
   }
 };
 
+export const deleteOrder = async (id: string) => {
+  try {
+    const result = await prisma.orders.delete({
+      where: {
+        orderId: id,
+      },
+    });
+    if (!result) return false;
+    return json({ success: true }, { status: 200 });
+  } catch (error) {
+    console.log(error);
+    return json(
+      { success: false, error: "Inernal Server error" },
+      { status: 500 }
+    );
+  }
+};
+
 export const updateStatusOrderItem = async (data: {
   orderId: string;
   productId: string;

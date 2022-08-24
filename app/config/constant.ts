@@ -7,4 +7,6 @@ export const constant = {
   EMAIL_HOST: process.env.EMAIL_HOST,
   EMAIL_USER: process.env.EMAIL_USER,
   EMAIL_PASSWORD: process.env.EMAIL_PASSWORD,
+  JWT_ACCESS_TOKEN: process.env.JWT_ACCESS_TOKEN,
+  JWT_REFRESH_TOKEN: process.env.JWT_REFRESH_TOKEN,
 };

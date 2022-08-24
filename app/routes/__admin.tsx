@@ -9,7 +9,6 @@ import {
   useMantineTheme,
   Group,
   Divider,
-  Box,
   Menu,
   LoadingOverlay,
   Avatar,
@@ -69,25 +68,26 @@ export default function AppShellDemo() {
                 : theme.colors.gray[0],
           },
         }}
-        navbarOffsetBreakpoint='sm'
+        navbarOffsetBreakpoint="sm"
         fixed
         navbar={
           <Navbar
-            p='md'
+            p="md"
             width={{ sm: 250 }}
             hidden={opened}
-            hiddenBreakpoint='sm'>
+            hiddenBreakpoint="sm"
+          >
             <Navbar.Section>
               <NavbarTitle
                 name={`${data.employees?.firstName} ${data.employees?.lastName}`}
                 email={data.email}
               />
               <Divider
-                my='md'
-                labelPosition='center'
+                my="md"
+                labelPosition="center"
                 label={
                   <>
-                    <Avatar src={IAvatar} size={50} radius='xl' />
+                    <Avatar src={IAvatar} size={50} radius="xl" />
                   </>
                 }
               />
@@ -98,7 +98,7 @@ export default function AppShellDemo() {
           </Navbar>
         }
         header={
-          <Header height={70} p='sm'>
+          <Header height={70} p="sm">
             <div
               style={{
                 display: "flex",
@@ -106,22 +106,23 @@ export default function AppShellDemo() {
                 width: "100%",
                 height: "100%",
                 justifyContent: "space-between",
-              }}>
-              <MediaQuery largerThan='sm' styles={{ display: "none" }}>
+              }}
+            >
+              <MediaQuery largerThan="sm" styles={{ display: "none" }}>
                 <Burger
                   opened={!opened}
                   onClick={() => setOpened((o) => !o)}
-                  size='sm'
+                  size="sm"
                   color={theme.colors.gray[6]}
                 />
               </MediaQuery>
               <Group>
-                <BrandJavascript size={30} strokeWidth={2} color='red' />
+                <BrandJavascript size={30} strokeWidth={2} color="red" />
                 <Text weight={700}>Demo App</Text>
               </Group>
               <div style={{ display: "flex", alignItems: "center" }}>
-                <MediaQuery smallerThan='sm' styles={{ display: "none" }}>
-                  <Group position='center'>
+                <MediaQuery smallerThan="sm" styles={{ display: "none" }}>
+                  <Group position="center">
                     <Menu withArrow width={200}>
                       <Menu.Target>
                         <UserButton image={IAvatar} email={data?.email} />
@@ -136,7 +137,7 @@ export default function AppShellDemo() {
                         </Menu.Item>
                         <Menu.Divider />
                         <Menu.Item
-                          color='red'
+                          color="red"
                           onClick={() =>
                             logout(
                               { _action: "logout" },
@@ -146,46 +147,43 @@ export default function AppShellDemo() {
                               }
                             )
                           }
-                          icon={<IconLogout size={14} />}>
+                          icon={<IconLogout size={14} />}
+                        >
                           Logout
                         </Menu.Item>
                       </Menu.Dropdown>
                     </Menu>
                   </Group>
                 </MediaQuery>
-                <DarkMode variant='light' size={18} />
+                <DarkMode variant="light" size={18} />
               </div>
             </div>
           </Header>
-        }>
-        <Box>
-          <LoadingOverlay
-            visible={
-              transition.submission?.formData.get("action") !==
-                "deleteCategory" &&
-              transition.submission?.formData.get("action") !==
-                "createCategory" &&
-              transition.submission?.formData.get("action") !==
-                "updateCategory" &&
-              transition.submission?.formData.get("action") !==
-                "createCluster" &&
-              transition.submission?.formData.get("action") !==
-                "deleteCluster" &&
-              transition.submission?.formData.get("action") !==
-                "updateCluster" &&
-              transition.submission?.formData.get("action") !==
-                "createSubCluster" &&
-              transition.submission?.formData.get("action") !==
-                "deleteSubCluster" &&
-              transition.submission?.formData.get("action") !==
-                "updateSubCluster" &&
-              transition.state === "submitting"
-                ? true
-                : false
-            }
-          />
-          <Outlet />
-        </Box>
+        }
+      >
+        <LoadingOverlay
+          visible={
+            transition.submission?.formData.get("action") !==
+              "deleteCategory" &&
+            transition.submission?.formData.get("action") !==
+              "createCategory" &&
+            transition.submission?.formData.get("action") !==
+              "updateCategory" &&
+            transition.submission?.formData.get("action") !== "createCluster" &&
+            transition.submission?.formData.get("action") !== "deleteCluster" &&
+            transition.submission?.formData.get("action") !== "updateCluster" &&
+            transition.submission?.formData.get("action") !==
+              "createSubCluster" &&
+            transition.submission?.formData.get("action") !==
+              "deleteSubCluster" &&
+            transition.submission?.formData.get("action") !==
+              "updateSubCluster" &&
+            transition.state === "submitting"
+              ? true
+              : false
+          }
+        />
+        <Outlet />
       </AppShell>
     </>
   );
