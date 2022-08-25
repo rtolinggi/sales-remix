@@ -19,7 +19,7 @@ import { Form, Link, useActionData, useTransition } from "@remix-run/react";
 import { json } from "@remix-run/node";
 import type { ActionFunction } from "@remix-run/node";
 import type { RegisterForm } from "~/utils/types.server";
-import { authLogin, register } from "~/controllers/auth.server";
+import { login, register } from "~/controllers/auth.server";
 import { showNotification } from "@mantine/notifications";
 import {
   validateConfirmPassword,
@@ -92,7 +92,7 @@ export const action: ActionFunction = async ({ request }) => {
 
   switch (action) {
     case "login": {
-      return await authLogin({ email, passwordHash });
+      return await login({ email, passwordHash });
     }
     case "register": {
       confirmPassword = confirmPassword as string;

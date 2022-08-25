@@ -35,7 +35,7 @@ export const getProduct = async () => {
         createdAt: "desc",
       },
     });
-    if (!result) return false;
+    if (!result) return null;
     return result;
   } catch (error) {
     console.log(error);
@@ -57,8 +57,8 @@ export const createProduct = async (data: FormProduct) => {
         description: data.description,
       },
     });
-    if (!result) return false;
-    return true;
+    if (!result) return null;
+    return result;
   } catch (error) {
     console.log(error);
     return json(
@@ -75,7 +75,7 @@ export const deleteProduct = async (idProduct: string) => {
         productId: parseInt(idProduct),
       },
     });
-    if (!deleteProductData) return false;
+    if (!deleteProductData) return null;
     return deleteProductData;
   } catch (error) {
     console.log(error);
@@ -97,7 +97,7 @@ export const updateProduct = async (data: FormProduct) => {
         description: data.description,
       },
     });
-    if (!result) return false;
+    if (!result) return null;
     return result;
   } catch (error) {
     console.log(error);
@@ -112,7 +112,7 @@ export const getCategory = async () => {
         categoryId: "desc",
       },
     });
-    if (!result) return false;
+    if (!result) return null;
     return result;
   } catch (error) {
     console.log(error);
@@ -127,7 +127,7 @@ export const createCategory = async (data: string) => {
         categoryName: data,
       },
     });
-    if (!insertCategory) return false;
+    if (!insertCategory) return null;
     return true;
   } catch (error) {
     console.log(error);
@@ -142,7 +142,7 @@ export const deleteCategory = async (data: string) => {
         categoryId: parseInt(JSON.parse(data)),
       },
     });
-    if (!result) return false;
+    if (!result) return null;
     return true;
   } catch (error) {
     console.log(error);
@@ -163,7 +163,7 @@ export const updateCategory = async (id: string, name: string) => {
         categoryName: name,
       },
     });
-    if (!result) return false;
+    if (!result) return null;
     return true;
   } catch (error) {
     console.log(error);

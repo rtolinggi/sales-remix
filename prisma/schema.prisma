@@ -1,181 +1,140 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
 generator client {
   provider = "prisma-client-js"
-  previewFeatures = ["referentialIntegrity"]
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
-  referentialIntegrity = "prisma"
 }
 
 model categorys {
-  categoryId   Int        @id @default(autoincrement()) @map("category_id")
-  categoryName String     @db.VarChar(220) @map("category_name")
-  products      products[]
+  categoryId   Int        @id @default(autoincrement())
+  categoryName String     
+  product products[]
 }
 
-model clusters {
-  clusterId   Int            @id @default(autoincrement()) @map("cluster_id")
-  clusterName String         @db.VarChar(220) @map("cluster_name")
-  sub_clusters sub_clusters[] 
+model products {
+  productId      Int              @id @default(autoincrement())
+  categoryId     Int              
+  supplierId     Int             
+  productName    String          
+  price          Int            
+  description    String           
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  categorys      categorys?        @relation(fields: [categoryId], references: [categoryId])
+  suppliers      suppliers?        @relation(fields: [supplierId], references: [supplierId])
+  oreders_detail oreders_detail[]
 }
 
-model employees {
-  employeeId   String             @id @db.VarChar(45) @default(uuid()) @map("employee_id")
-  userId       String?             @unique @db.VarChar(45) @map("user_id")
-  firstName    String             @db.VarChar(200) @map("first_name")
-  lastName     String             @db.VarChar(200) @map("last_name")
-  gender       employees_gender
-  birthDay     DateTime?          @db.Date @map("birth_day")
-  address      String?            @db.Text
-  phone        String             @db.VarChar(15)
-  joinDate     DateTime?          @db.Date @map("join_date")
-  endDate      DateTime?          @db.Date @map("end_date")
-  jobTitle     String             @db.VarChar(200) @map("job_title")
-  image        String             @default("default.jpg") @db.VarChar(220)
-  createdAt    DateTime           @default(now()) @map("created_at")
-  updatedAt    DateTime           @updatedAt @map("updated_at")
-  users        users?             @relation(fields: [userId], references: [userId], onDelete: Cascade, map: "fk_employees_users")
-  orders       orders[]
-  task         tasks[]
+model suppliers {
+  supplierId   Int        @id @default(autoincrement())
+  supplierName String    
+  address      String     @db.Text
+  phone        String     
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  products     products[]
+}
 
-  @@index([userId], map: "fk_employees_users_idx")
+model oreders_detail {
+  orderId   String
+  productId Int         
+  quantity  Int
+  status    status_order @default(PENDING)
+  orders    orders       @relation(fields: [orderId], references: [orderId])
+  products  products     @relation(fields: [productId], references: [productId])
+
+  @@id([orderId,productId])
+}
+
+enum status_order {
+  CONFIRM
+  CANCEL
+  PENDING
 }
 
 model orders {
   orderId        String           @id
-  storeId        String           @db.VarChar(45) @map("store_id")
-  employeeId     String           @db.VarChar(45) @map("employee_id")
-  orderDate      DateTime         @default(now()) @map("order_date")
-  total          Float?           @db.Float
-  employees      employees        @relation(fields: [employeeId], references: [employeeId], map: "fk_orders_employees1")
-  stores         stores           @relation(fields: [storeId], references: [storeId], map: "fk_orders_stores1")
+  storeId        String          
+  employeeId     String          
+  orderDate      DateTime         @default(now()) 
+  total          Int
+  employees      employees        @relation(fields: [employeeId], references: [employeeId])
+  stores         stores           @relation(fields: [storeId], references: [storeId])
   oreders_detail oreders_detail[]
-
-  @@index([employeeId], map: "fk_orders_employees1_idx")
-  @@index([storeId], map: "fk_orders_stores1_idx")
 }
 
-model oreders_detail {
-  orderId    String @map("order_id")
-  productId  Int @map("product_id")
-  quantity   Int
-  status     status_order @default(PENDING)
-  orders     orders   @relation(fields: [orderId], references: [orderId], map: "fk_oreders_detail_orders1")
-  products   products @relation(fields: [productId], references: [productId], map: "fk_oreders_detail_products1")
-
-  @@id([orderId, productId])
-  @@index([orderId], map: "fk_oreders_detail_orders1_idx")
-  @@index([productId], map: "fk_oreders_detail_products1_idx")
-}
-
-model products {
-  productId      Int              @id @default(autoincrement()) @map("product_id")
-  categoryId     Int              @map("category_id")
-  supplierId     Int              @map("supplier_id")
-  productName    String           @db.VarChar(220) @map("product_name")
-  price          Float            @db.Float
-  description    String           @db.Text
-  createdAt      DateTime         @default(now()) @map("created_at")
-  updatedAt      DateTime         @updatedAt @map("updated_at")
-  categorys      categorys        @relation(fields: [categoryId], references: [categoryId], map: "fk_products_categorys1")
-  suppliers      suppliers        @relation(fields: [supplierId], references: [supplierId], map: "fk_products_suppliers1")
-  oreders_detail oreders_detail[]
-
-  @@index([categoryId], map: "fk_products_categorys1_idx")
-  @@index([supplierId], map: "fk_products_suppliers1_idx")
-}
-
-model stores {
-  storeId       String        @id @db.VarChar(45) @default(uuid()) @map("store_id")
-  subClusterId  Int?          @map("sub_cluster_id")
-  storeName     String        @db.VarChar(250) @map("store_name")
-  ownerName     String?       @db.VarChar(199) @map("owner_name")
-  address       String        @db.Text
-  phone         String        @db.VarChar(15)
-  createdAt     DateTime      @default(now()) @map("created_at")
-  updatedAt     DateTime      @updatedAt @map("updated_at")
-  subClusters   sub_clusters? @relation(fields: [subClusterId], references: [id], onDelete: Restrict, map: "fk_store_sub_cluster1")
-  orders        orders[]
-
-  @@index([subClusterId], map: "fk_store_sub_cluster1_idx")
-}
-
-model sub_clusters {
-  id              Int      @id @default(autoincrement())
-  clusterId       Int      @map("cluster_id")
-  subClusterName  String?  @db.VarChar(200) @map("subClusterName")
-  clusters        clusters @relation(fields: [clusterId], references: [clusterId], map: "fk_sub_cluster_cluster1")
-  stores          stores[]
-
-  @@index([clusterId], map: "fk_sub_cluster_cluster1_idx")
-}
-
-model suppliers {
-  supplierId    Int        @id @default(autoincrement()) @map("supplier_id")
-  supplierName  String     @db.VarChar(220) @map("supplier_name")
-  address       String     @db.Text
-  phone         String     @db.VarChar(15)
-  createdAt     DateTime   @default(now()) @map("created_at")
-  updatedAt     DateTime   @updatedAt @map("updated_at")
-  products      products[]
-}
-
-model users {
-  userId       String      @id @db.VarChar(45) @map("user_id") @default(uuid())
-  email        String      @unique(map: "email_UNIQUE") @db.VarChar(220)
-  passwordHash String      @db.VarChar(250) @map("password_hash")
-  isActive     Boolean     @default(false) @map("is_active")
-  isVerified   Boolean     @default(false) @map("is_verified")
-  refreshToken String?     @db.Text @map("refresh_token")
-  role         Role         @default(USER)
-  createdAt    DateTime    @default(now()) @map("created_at")
-  updatedAt    DateTime    @updatedAt @map("updated_at")
-  employees    employees?
-  verifiedEmail verifiedEmail?
+model employees {
+  employeeId String           @id @default(uuid())
+  userId     String?          @unique
+  firstName  String          
+  lastName   String           
+  gender     employees_gender
+  birthDay   DateTime?        
+  address    String?          @db.Text
+  phone      String           
+  joinDate   DateTime?        
+  endDate    DateTime?       
+  jobTitle   String           
+  image      String           @default("default.jpg")
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+  users      users?           @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  orders     orders[]
+  task       tasks[]
 }
 
 model verifiedEmail {
-  id            Int       @id @default(autoincrement())
-  token         String 
-  expired       Int       @default(3600)
-  createdAt     DateTime  @default(now())
-  userId        String    @unique
-  user          users     @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  id        Int      @id @default(autoincrement())
+  token     String
+  expired   Int      @default(3600)
+  createdAt DateTime @default(now())
+  userId    String   @unique
+  user      users    @relation(fields: [userId], references: [userId], onDelete: Cascade)
 }
 
 model tasks {
-  taskId        Int @id @default(autoincrement()) @map("task_id")
-  assignTo      String @db.VarChar(45) @map("assign_to")
-  resultId      Int @map("result_id")
-  storeId       String @db.VarChar(45) @map("store_id")
-  status        status
-  scheduleDate  DateTime @default(now()) @map("schedule_date") 
-  scheduleNext  DateTime @map("schedule_next")
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
-  result        tasks_result @relation(fields: [resultId], references: [resultId], map: "fk_task_result1")
-  employee      employees @relation(fields: [assignTo], references: [employeeId], map: "fk_tasks_employee1")
+  taskId       Int          @id @default(autoincrement())
+  assignTo     String      
+  resultId     Int          
+  storeId      String       
+  status       status
+  scheduleDate DateTime     @default(now()) 
+  scheduleNext DateTime     
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt 
+  result       tasks_result @relation(fields: [resultId], references: [resultId])
+  employee     employees    @relation(fields: [assignTo], references: [employeeId])
+}
 
-  @@index([assignTo], map: "fk_tasks_employess1_idx")
-  @@index([resultId], map: "fk_tasks_result1_idx")
+model users {
+  userId        String         @id @default(uuid())
+  email         String         @unique
+  passwordHash  String        
+  isActive      Boolean        @default(false)
+  isVerified    Boolean        @default(false)
+  refreshToken  String?         @db.Text
+  role          Role           @default(USER)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  employees     employees?
+  verifiedEmail verifiedEmail?
 }
 
 model tasks_result {
-  resultId          Int @id @default(autoincrement()) @map("result_id")
-  result      String
-  task        tasks[]
+  resultId Int     @id @default(autoincrement())
+  result   String
+  task     tasks[]
 }
 
 enum status {
   NOTREAD
   READ
   VISITED
-}
-enum employees_gender {
-  F
-  M
 }
 
 enum Role {
@@ -184,8 +143,38 @@ enum Role {
   USER
 }
 
-enum status_order {
-  CONFIRM
-  CANCEL
-  PENDING
+enum employees_gender {
+  F
+  M
 }
+
+model stores {
+  storeId      String        @id @default(uuid())
+  subClusterId Int?         
+  storeName    String        
+  ownerName    String?       
+  address      String        @db.Text
+  phone        String        
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  subClusters  sub_clusters? @relation(fields: [subClusterId], references: [id])
+  orders       orders[]
+}
+
+model sub_clusters {
+  id             Int      @id @default(autoincrement())
+  clusterId      Int?      
+  subClusterName String?  
+  clusters       clusters? @relation(fields: [clusterId], references: [clusterId],onDelete: Cascade)
+  stores         stores[]
+}
+
+model clusters {
+  clusterId    Int            @id @default(autoincrement())
+  clusterName  String         
+  sub_clusters sub_clusters[]
+}
+
+
+
+
