@@ -420,6 +420,7 @@ export default function Product() {
         }
       />
       <Modal
+        centered
         opened={openModal}
         size="md"
         onClose={() => {
